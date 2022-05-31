@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Basic 3D World</title>
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="base.css">
+</head>
+<body>
+  <script src="./main.js" type="module">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/92/three.min.js"></script>
+  <script src="../../libs/FBXLoader.js"></script>
+  <div id="loadingScreen" class="loader">
+    <svg width="200" height="200" viewBox="0 0 100 100">
+  <polyline class="line-cornered stroke-still" points="0,0 100,0 100,100" stroke-width="10" fill="none"></polyline>
+  <polyline class="line-cornered stroke-still" points="0,0 0,100 100,100" stroke-width="10" fill="none"></polyline>
+  <polyline class="line-cornered stroke-animation" points="0,0 100,0 100,100" stroke-width="10" fill="none"></polyline>
+  <polyline class="line-cornered stroke-animation" points="0,0 0,100 100,100" stroke-width="10" fill="none"></polyline>
+</svg>
+<span>Loading...</span>
+  </div>
+</body>
+</html>
