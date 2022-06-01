@@ -233,7 +233,10 @@ class BasicCharacterControllerInput {
                 this._keys.left = true;
                 break;
             case 83: // s
-                this._keys.backward = false; //disabled for now
+                this._keys.backward = true; //disabled for now
+                if (this._keys.shift){
+                    this._keys.shift = false;
+                }
                 break;
             case 68: // d
                 this._keys.right = true;
@@ -243,7 +246,11 @@ class BasicCharacterControllerInput {
                 break;
             case 16: // SHIFT
                 DistFromBox = 18;// increase raycasting distance because character is leaned forward when running
-                this._keys.shift = true;
+                console.log(this._keys.backward);
+                if (!this._keys.backward){
+                    this._keys.shift = true;
+                }
+
                 break;
         }
     }
@@ -276,7 +283,7 @@ class BasicCharacterControllerInput {
     }
 };
 
-//Interface class for state machine to keep track of the character's movements 
+//Interface class for state machine to keep track of the character's movements
 class FiniteStateMachine {
     constructor() {
         this._states = {};
@@ -721,35 +728,46 @@ class Main {
     }
 
     _movePlayer() {
-        if (this.environmentProxy) {
-            const pos = Target.Position;
-            pos.y += 60;
-            let dir = new THREE.Vector3();
-            this._camera.getWorldDirection(dir);
+        const pos = Target.Position;
+        pos.y += 60;
+        let dir = new THREE.Vector3();
+        this._camera.getWorldDirection(dir);
+        let dist=0;
 
-            let raycaster = new THREE.Raycaster(pos, dir);
-
-            let blocked = false;
-
-
-            for (let box of this.environmentProxy.children) { //environmentProxy stores all the boxes that we created in createDummyEnv
-
-                const intersect = raycaster.intersectObject(box);
-                //console.log(box);
-                if (intersect.length > 0) {  //intersect is an array that stores all the boxes that is in the path of our raycaster
-                    if (intersect[0].distance < DistFromBox) { //it is ordered by distance , so the closest is at pos[0] ,hence intersect[0].
-                        console.log(DistFromBox);
-                        blocked = true;  //Player should not be able to move in that direction
-                        console.log("cannot proceed forward.");
-                        AvailableControls.forward = false;
-                        break;
-                    }
-                }
-            }
-            if (!blocked && AvailableControls.forward == false) {
+        if (this.environmentProxy != undefined) {
+            //cast in front
+            let raycaster_front = new THREE.Raycaster(pos, dir);
+            let Front_Blocked = this._CheckBlocked(raycaster_front);
+            if (Front_Blocked) {
                 AvailableControls.forward = false;
             }
         }
+
+        if (this.environmentProxy != undefined) {
+            //cast behind
+			dir.set(0,0,-1);
+			dir.applyMatrix4(this._camera.matrix);
+            dir.normalize();
+            let ryacaster_back = new THREE.Raycaster(pos, dir);
+            let Back_Blocked=this._CheckBlocked(ryacaster_back);
+            if (Back_Blocked) {
+                AvailableControls.backward = false;
+            }
+        }
+    }
+
+    _CheckBlocked(raycaster) {
+        let blocked = false;
+        for (let box of this.environmentProxy.children) { //environmentProxy stores all the boxes that we created in createDummyEnv
+            const intersect = raycaster.intersectObject(box);
+            if (intersect.length > 0) {  //intersect is an array that stores all the boxes that is in the path of our raycaster
+                if (intersect[0].distance < DistFromBox) { //it is ordered by distance , so the closest is at pos[0] ,hence intersect[0].
+                    blocked = true;  //Player should not be able to move in that direction
+                    break;
+                }
+            }
+        }
+        return blocked;
     }
 
     _LoadAnimatedModel(ctrls) {
@@ -809,6 +827,7 @@ class Main {
             game._scene.add(object);
             object.receiveShadow = true;
             //object.scale.set(0.8, 0.8, 0.8);
+            console.log("maze object ",object);
             object.name = "Environment";
             game.environmentProxy = object;
         }, null, this.onError);
