@@ -6,5 +6,5 @@ Basic character controller with three.js
 Simply pull the repo 
 
 npm install
+
 npm run build
-# samuraiescape
