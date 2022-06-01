@@ -1,7 +1,10 @@
-# hello_three.js
+# samuraiEscape
 Basic character controller with three.js
 
 
 # Usage
-Simply pull the repo and open index.html
+Simply pull the repo 
+
+npm install
+npm run build
 # samuraiescape
