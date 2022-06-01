@@ -14,6 +14,7 @@ let pos = null;
 let Cam = null;
 let ctrls = null;
 let DistFromBox = 8;
+let paused = false;
 
 //Intermediary for animating a character
 class BasicCharacterControllerProxy {
@@ -27,7 +28,7 @@ class BasicCharacterControllerProxy {
 };
 
 //Mechanics behind using a character
-class BasicCharacterController {
+class Character {
     constructor(params) {
         this._Init(params);
     }
@@ -68,14 +69,14 @@ class BasicCharacterController {
             this._target = fbx;
             this._params.scene.add(this._target);
 
-
-            this._mixer = new THREE.AnimationMixer(this._target);
-
             this._manager = new THREE.LoadingManager();
             this._manager.onLoad = () => {
+                console.log('done loading');
                 this._stateMachine.SetState('idle');
                 document.getElementById('loadingScreen').className = 'loaderHidden';
             };
+
+            this._mixer = new THREE.AnimationMixer(this._target);
 
             const _OnLoad = (animName, anim) => {
                 const clip = anim.animations[0];
@@ -94,6 +95,7 @@ class BasicCharacterController {
             loader.load('Run.fbx', (a) => { _OnLoad('run', a); });
             loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
             loader.load('Mma Kick.fbx', (a) => { _OnLoad('dance', a); });
+
         });
 
     }
@@ -244,6 +246,14 @@ class BasicCharacterControllerInput {
             case 16: // SHIFT
                 DistFromBox = 18;// increase raycasting distance because character is leaned forward when running
                 this._keys.shift = true;
+                break;
+            case 27:
+                paused = !paused;
+                if (paused) {
+                    document.getElementById('pauseMenu').className = "pauseShow";
+                } else {
+                    document.getElementById('pauseMenu').className = "loaderHidden";
+                }
                 break;
         }
     }
@@ -757,12 +767,10 @@ class Main {
             camera: this._camera,
             scene: this._scene,
         }
-        this._controls = new BasicCharacterController(params);
-        console.log("CONTROLS");
+        this._controls = new Character(params);
 
 
         AvailableControls = this._controls._input._keys;
-        console.log(AvailableControls);
 
         Target = this._controls;
         Cam = this._camera;
@@ -805,10 +813,8 @@ class Main {
         const loader = new FBXLoader();
 
         loader.load('../resources/maze1.fbx', function (object) {
-            console.log(object);
             game._scene.add(object);
             object.receiveShadow = true;
-            //object.scale.set(0.8, 0.8, 0.8);
             object.name = "Environment";
             game.environmentProxy = object;
         }, null, this.onError);
@@ -828,8 +834,6 @@ class Main {
 
             let delta = this._clock.getDelta();
 
-
-            this._movePlayer(delta);
             this._threejs.render(this._scene, this._camera);
             this._Step(delta);
             this._previousRAF = t;
@@ -838,25 +842,25 @@ class Main {
     }
 
     _Step(timeElapsed) {
-        const timeElapsedS = timeElapsed;
-        if (this._mixers) {
-            //update mixers
-            this._mixers.map(m => m.update(timeElapsedS));
-        }
+        if (!paused) {
+            const timeElapsedS = timeElapsed;
 
-        if (this.physicsWorld) {
-            this._updatePhysics(timeElapsed);
-        }
+            this._movePlayer(timeElapsedS);
+            if (this._mixers) {
+                //update mixers
+                this._mixers.map(m => m.update(timeElapsedS));
+            }
 
-        if (this._controls) {
-            this._controls.Update(timeElapsedS);
-        }
+            if (this._controls) {
+                this._controls.Update(timeElapsedS);
+            }
 
-        if (peekView) {
-            this._perspectiveCamera.Update(timeElapsedS);
-        }
-        else {
-            this._thirdPersonCamera.Update(timeElapsedS);
+            if (peekView) {
+                this._perspectiveCamera.Update(timeElapsedS);
+            }
+            else {
+                this._thirdPersonCamera.Update(timeElapsedS);
+            }
         }
     }
 }
