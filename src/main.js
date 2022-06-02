@@ -661,7 +661,7 @@ class Main {
         this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
         //adjust minimap scale
-        let viewSize = 150;
+        let viewSize = 140;
         this._cameraOrtho = new THREE.OrthographicCamera((aspect * viewSize) / -2, (aspect * viewSize) / 2, (aspect * viewSize) / 2, (aspect * viewSize) / -2, -200, 1000);
         this._cameraOrtho.zoom = 100;
         this._cameraOrtho.position.set(0, 30, 0);
@@ -718,22 +718,22 @@ class Main {
 
         //plane
         const textureLoader = new THREE.TextureLoader();
-        const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/Rocks_Hexagons_001_basecolor.jpg");
-        const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Rocks_Hexagons_001_normal.jpg");
-        const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Rocks_Hexagons_001_height.png");
-        const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Rocks_Hexagons_001_roughness.jpg");
-        const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Rocks_Hexagons_001_ambientOcclusion.jpg");
+        const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/SandG_001.jpg");
+       // const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Sand 002_NRM.jpg");
+        //const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Sand 002_DISP.tiff");
+        //const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Sand 002_SPEC.jpg");
+        //const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Sand_006_ambientOcclusion.jpg");
 
         const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(2000, 2000, 10, 10),
+            new THREE.PlaneGeometry(5000, 5000, 10, 10),
             new THREE.MeshStandardMaterial({
                 map: _PlaneBaseCol,
-                normalMap: _PlaneNorm,
-                displacementMap: _PlaneHeight,
-                displacementScale: 0.05,
-                roughnessMap: _PlaneRoughness,
-                roughness: 0.5,
-                aoMap: _PlaneAmbientOcc,
+                //normalMap: _PlaneNorm,
+                //displacementMap: _PlaneHeight,
+                //displacementScale: 0.05,
+                //roughnessMap: _PlaneRoughness,
+                //roughness: 0.5,
+                //aoMap: _PlaneAmbientOcc,
             }));
         plane.castShadow = false;
         plane.receiveShadow = true;
