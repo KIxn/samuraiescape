@@ -15,6 +15,8 @@ let Cam = null;
 let ctrls = null;
 let DistFromBox = 8;
 let paused = false;
+let skybox;
+let renderer;
 
 //Intermediary for animating a character
 class BasicCharacterControllerProxy {
@@ -679,9 +681,10 @@ class Main {
         this._scene = new THREE.Scene();
         this._scene.add(this._camera);
 
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
-        let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
-        light.position.set(-100, 100, 100);
+        let light = new THREE.DirectionalLight(0xFFFFFF, 1.5);
+        light.position.set(-100, 200, 300);
         light.target.position.set(0, 0, 0);
         light.castShadow = true;
         light.shadow.bias = -0.001;
@@ -697,7 +700,7 @@ class Main {
         light.shadow.camera.bottom = -50;
         this._scene.add(light);
 
-        light = new THREE.AmbientLight(0xFFFFFF, 0.25);
+        light = new THREE.AmbientLight(0xFFFFFF, 0.5);
         this._scene.add(light);
 
 
@@ -711,29 +714,29 @@ class Main {
             '../resources/skybox1/skybox_back.png',
 
         ]);
-        this._scene.background = texture;
-        texture.encoding = THREE.sRGBEncoding;
-        this._scene.background = texture;
-
+        const geometry = new THREE.BoxBufferGeometry(1000, 1000, 1000);
+        const material = this._generateMaterialsArray(this._getTexturesPaths('skybox'));
+        this.skybox = new THREE.Mesh(geometry, material);
+        this._scene.add(this.skybox);
 
         //plane
         const textureLoader = new THREE.TextureLoader();
-        const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/SandG_001.jpg");
-       // const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Sand 002_NRM.jpg");
-        //const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Sand 002_DISP.tiff");
-        //const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Sand 002_SPEC.jpg");
-        //const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Sand_006_ambientOcclusion.jpg");
+        const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/Marble_White_007_basecolor.jpg");
+        const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Marble_White_007_normal.jpg");
+        const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Marble_White_007_height.png");
+        const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Marble_White_007_roughness.jpg");
+        const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Marble_White_007_ambientOcclusion.jpg");
 
         const plane = new THREE.Mesh(
             new THREE.PlaneGeometry(5000, 5000, 10, 10),
             new THREE.MeshStandardMaterial({
                 map: _PlaneBaseCol,
-                //normalMap: _PlaneNorm,
-                //displacementMap: _PlaneHeight,
-                //displacementScale: 0.05,
-                //roughnessMap: _PlaneRoughness,
-                //roughness: 0.5,
-                //aoMap: _PlaneAmbientOcc,
+                normalMap: _PlaneNorm,
+                displacementMap: _PlaneHeight,
+                displacementScale: 0.05,
+                roughnessMap: _PlaneRoughness,
+                roughness: 0.5,
+                aoMap: _PlaneAmbientOcc,
             }));
         plane.castShadow = false;
         plane.receiveShadow = true;
@@ -748,6 +751,34 @@ class Main {
 
         this._LoadAnimatedModel(controls);
         this._RAF();
+    }
+
+    _generateMaterialsArray(urls = []) {
+        //const maxAnisotropy = this._renderer.getMaxAnisotropy();
+
+        return urls.map((url) => {
+            const texture = new THREE.TextureLoader().load(url);
+            texture.anisotropy =this.renderer.capabilities.getMaxAnisotropy();
+
+            const props = {
+                map: texture,
+                side: THREE.BackSide,
+                fog: false,
+                depthWrite: false,
+            };
+
+            return new THREE.MeshBasicMaterial(props);
+        });
+    }
+
+    _getTexturesPaths(ident = 'skybox', refraction = true) {
+        const basePath = `/resources/skybox1/${ident}`;
+        const ext = '.png';
+        const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
+
+        return sides.map(side => {
+            return basePath + side + ext;
+        });
     }
 
     _movePlayer() {
@@ -859,7 +890,7 @@ class Main {
         this._insetWidth = window.innerHeight / 4;
         this._insetHeight = window.innerHeight / 4;
 
-        this._cameraOrtho.aspect = insetWidth / insetHeight;
+        this._cameraOrtho.aspect = this._insetWidth / this._insetHeight;
         this._cameraOrtho.updateProjectionMatrix();
     }
 
@@ -870,6 +901,11 @@ class Main {
             }
 
             let delta = this._clock.getDelta();
+
+            const initialRotY = this.skybox.rotation.y;
+            const initialRotX = this.skybox.rotation.x;
+            this.skybox.rotation.y = initialRotY + (delta *-0.06);
+            this.skybox.rotation.x = initialRotX ;
 
             this._threejs.setClearColor(0x000000);
             this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
@@ -891,6 +927,8 @@ class Main {
 
     _Step(timeElapsed) {
         if (!paused) {
+
+
             const timeElapsedS = timeElapsed;
 
             this._movePlayer(timeElapsedS);
