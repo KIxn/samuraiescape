@@ -236,7 +236,7 @@ class BasicCharacterControllerInput {
                 break;
             case 83: // s
                 this._keys.backward = true; //disabled for now
-                if (this._keys.shift){
+                if (this._keys.shift) {
                     this._keys.shift = false;
                 }
                 break;
@@ -249,7 +249,7 @@ class BasicCharacterControllerInput {
             case 16: // SHIFT
                 DistFromBox = 18;// increase raycasting distance because character is leaned forward when running
                 console.log(this._keys.backward);
-                if (!this._keys.backward){
+                if (!this._keys.backward) {
                     this._keys.shift = true;
                 }
 
@@ -644,6 +644,8 @@ class Main {
         this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
         this._threejs.setPixelRatio(window.devicePixelRatio);
         this._threejs.setSize(window.innerWidth, window.innerHeight);
+        this._insetWidth = window.innerHeight / 4;
+        this._insetHeight = window.innerHeight / 4;
 
         document.body.appendChild(this._threejs.domElement);
 
@@ -652,11 +654,21 @@ class Main {
         }, false);
         const fov = 60;
         const aspect = 1920 / 1080;
-        const near = 1.0;
+        const near = 2.0;
         const far = 1000.0;
 
         //create cameras
         this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+
+        //adjust minimap scale
+        let viewSize = 150;
+        this._cameraOrtho = new THREE.OrthographicCamera((aspect * viewSize) / -2, (aspect * viewSize) / 2, (aspect * viewSize) / 2, (aspect * viewSize) / -2, -200, 1000);
+        this._cameraOrtho.zoom = 100;
+        this._cameraOrtho.position.set(0, 30, 0);
+        this._cameraOrtho.up.set(0, 1, 0);
+        this._cameraOrtho.lookAt(new THREE.Vector3());
+        this._camera.add(this._cameraOrtho);
+        console.log(this._camera);
 
         const controls = new OrbitControls(this._camera, this._threejs.domElement);
         controls.keys = {};
@@ -665,6 +677,7 @@ class Main {
         controls.update();
 
         this._scene = new THREE.Scene();
+        this._scene.add(this._camera);
 
 
         let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
@@ -742,7 +755,7 @@ class Main {
         pos.y += 60;
         let dir = new THREE.Vector3();
         this._camera.getWorldDirection(dir);
-        let dist=0;
+        let dist = 0;
 
         if (this.environmentProxy != undefined) {
             //cast in front
@@ -755,11 +768,11 @@ class Main {
 
         if (this.environmentProxy != undefined) {
             //cast behind
-			dir.set(0,0,-1);
-			dir.applyMatrix4(this._camera.matrix);
+            dir.set(0, 0, -1);
+            dir.applyMatrix4(this._camera.matrix);
             dir.normalize();
             let ryacaster_back = new THREE.Raycaster(pos, dir);
-            let Back_Blocked=this._CheckBlocked(ryacaster_back);
+            let Back_Blocked = this._CheckBlocked(ryacaster_back);
             if (Back_Blocked) {
                 AvailableControls.backward = false;
             }
@@ -842,6 +855,12 @@ class Main {
         this._camera.aspect = window.innerWidth / window.innerHeight;
         this._camera.updateProjectionMatrix();
         this._threejs.setSize(window.innerWidth, window.innerHeight);
+
+        this._insetWidth = window.innerHeight / 4;
+        this._insetHeight = window.innerHeight / 4;
+
+        this._cameraOrtho.aspect = insetWidth / insetHeight;
+        this._cameraOrtho.updateProjectionMatrix();
     }
 
     _RAF() {
@@ -852,7 +871,18 @@ class Main {
 
             let delta = this._clock.getDelta();
 
+            this._threejs.setClearColor(0x000000);
+            this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
             this._threejs.render(this._scene, this._camera);
+
+            this._threejs.setClearColor(0x333333);
+            this._threejs.clearDepth();
+            this._threejs.setScissorTest(true);
+            this._threejs.setScissor(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+            this._threejs.setViewport(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+            this._threejs.render(this._scene, this._cameraOrtho);
+            this._threejs.setScissorTest(false);
+
             this._Step(delta);
             this._previousRAF = t;
             this._RAF();
