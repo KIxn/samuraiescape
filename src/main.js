@@ -743,6 +743,8 @@ class Main {
         plane.rotation.x = -Math.PI / 2;
         this._scene.add(plane);
 
+        //testing out environment compatability
+
 
         this._loadEnvironment();
         this._mixers = [];
@@ -901,12 +903,15 @@ class Main {
             }
 
             let delta = this._clock.getDelta();
-
+            //dynamic skybox
             const initialRotY = this.skybox.rotation.y;
             const initialRotX = this.skybox.rotation.x;
             this.skybox.rotation.y = initialRotY + (delta * -0.06);
             this.skybox.rotation.x = initialRotX;
+            this.skybox.position.x = Target.Position.x;
+            this.skybox.position.z = Target.Position.z;
 
+            //minimap
             this._threejs.setClearColor(0x000000);
             this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
             this._threejs.render(this._scene, this._camera);
