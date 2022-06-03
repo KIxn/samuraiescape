@@ -167,7 +167,7 @@ span {
 }
 
 .loaderHidden {
-    visibility: hidden;
+    display: none;
 }
 
 .pauseShow {
@@ -251,4 +251,29 @@ a:hover {
 .btn-two:hover::after {
     transform: rotate(45deg);
     background-color: rgba(255, 255, 255, 0);
+}
+
+.interactPrompt {
+    position: absolute;
+    background-color: rgba(0, 40, 40, 0.95);
+    color: azure;
+    left: 40%;
+    top: 100%;
+    padding: 0.2em 1em;
+    letter-spacing: 0.8px;
+    word-spacing: 2px;
+    border-radius: 3px;
+}
+
+.endGame {
+    display: flex;
+    flex-flow: column;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.75);
+    text-align: center !important;
+    font-size: xx-large;
 }

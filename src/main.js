@@ -139,6 +139,7 @@ class Character {
 
         const acc = this._acceleration.clone();
         if (this._input._keys.shift) {
+            //TODO adjust sprint speed
             acc.multiplyScalar(6.0);
         }
 
@@ -452,7 +453,6 @@ class WalkState extends State {
             }
             return;
         }
-        //TODO implement backward walk
         this._parent.SetState('idle');
     }
 };
@@ -758,7 +758,7 @@ class Main {
 
         return urls.map((url) => {
             const texture = new THREE.TextureLoader().load(url);
-            texture.anisotropy =this.renderer.capabilities.getMaxAnisotropy();
+            texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
 
             const props = {
                 map: texture,
@@ -904,8 +904,8 @@ class Main {
 
             const initialRotY = this.skybox.rotation.y;
             const initialRotX = this.skybox.rotation.x;
-            this.skybox.rotation.y = initialRotY + (delta *-0.06);
-            this.skybox.rotation.x = initialRotX ;
+            this.skybox.rotation.y = initialRotY + (delta * -0.06);
+            this.skybox.rotation.x = initialRotX;
 
             this._threejs.setClearColor(0x000000);
             this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);

@@ -13,6 +13,7 @@
       location.reload();
     }
   </script>
+
   <div id="loadingScreen" class="loader">
     <svg width="200" height="200" viewBox="0 0 100 100">
   <polyline class="line-cornered stroke-still" points="0,0 100,0 100,100" stroke-width="10" fill="none"></polyline>
@@ -22,14 +23,44 @@
 </svg>
 <span>Loading...</span>
   </div>
+
   <div id="pauseMenu" class="loaderHidden">
     <h1>Pause Menu</h1>
     <div class="btn btn-two">
-            <span><a id="homeBtn" href="../index.html" target="_self">Homepage</a></span>
-        </div>
-        <div class="btn btn-two">
-            <span><a id="restartBtn" onclick="refresh()">Restart</a></span>
-        </div> 
+      <span><a id="homeBtn" href="../index.html" target="_self">Homepage</a></span>
+    </div>
+    <div class="btn btn-two">
+      <span><a id="restartBtn" onclick="refresh()">Restart</a></span>
+    </div>
+  </div>
+
+  <div id="prompt" class="loaderHidden">
+    <h1>Press <img src="../resources/letter_f.png" alt="F-key" height="32" width="32"> to Interact</h1>
+  </div>
+
+  <div id="gameOver" class="loaderHidden">
+    <h1>Game Over</h1>
+    <h3>Put 5 bob TRY AGAIN</h3>
+    <div class="btn btn-two">
+      <span><a id="homeBtn" href="../index.html" target="_self">Homepage</a></span>
+    </div>
+    <div class="btn btn-two">
+      <span><a id="restartBtn" onclick="refresh()">Retry</a></span>
+    </div> 
+  </div>
+
+  <div id="endLevel" class="loaderHidden">
+    <h1>Congratulations!</h1>
+    <h3>You Completed the Level</h3>
+    <div class="btn btn-two">
+      <span><a id="homeBtn" href="../index.html" target="_self">Homepage</a></span>
+    </div>
+    <div class="btn btn-two">
+      <span><a id="restartBtn" onclick="refresh()">Retry</a></span>
+    </div>
+    <div class="btn btn-two">
+      <span><a id="restartBtn" href="../index.html">Next Level</a></span>
+    </div>
   </div>
 </body>
 </html>
