@@ -4,7 +4,8 @@ body {
 }
 
 div {
-    background-color: rgba(104, 109, 101, 0.95);
+    background-color: rgb(75 66 88 / 95%);
+    color: azure;
 }
 
 canvas {
@@ -22,7 +23,9 @@ canvas {
     padding: 1em;
     text-align: center;
     border: 0.2em solid black;
-
+    margin-top: 70px;
+    margin-left: 70px;
+    font-size: x-large;
 }
 
 .gameDesc h1 {
@@ -30,7 +33,7 @@ canvas {
 }
 
 a {
-    color: black;
+    color: azure;
     text-decoration: none !important;
 }
 
