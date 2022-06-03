@@ -4,7 +4,6 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
 
 
-
 //Global
 let peekView = false;
 let Target = null;
@@ -15,8 +14,9 @@ let Cam = null;
 let ctrls = null;
 let DistFromBox = 8;
 let paused = false;
-let skybox;
-let renderer;
+let timerTag = null;
+let timerInterval;
+let secondsDiff = 3 * 60; //3 minutes
 
 //Intermediary for animating a character
 class BasicCharacterControllerProxy {
@@ -76,6 +76,29 @@ class Character {
                 console.log('done loading');
                 this._stateMachine.SetState('idle');
                 document.getElementById('loadingScreen').className = 'loaderHidden';
+                document.getElementById("timer").className = "timerBox";
+                timerInterval = setInterval(() => {
+                    //if dom is rendered
+                    if (timerTag) {
+                        //calc time diff
+                        let minutes = Math.floor(secondsDiff / 60);
+                        let seconds = secondsDiff - (minutes * 60);
+                        if (minutes < 10) {
+                            minutes = "0" + minutes.toString();
+                        }
+                        else {
+                            minutes = minutes.toString();
+                        }
+                        if (seconds < 10) {
+                            seconds = "0" + seconds.toString();
+                        }
+                        else {
+                            seconds = seconds.toString();
+                        }
+                        timerTag.innerHTML = minutes + ":" + seconds;
+                        secondsDiff--;
+                    }
+                }, 1000);
             };
 
             this._mixer = new THREE.AnimationMixer(this._target);
@@ -93,10 +116,10 @@ class Character {
             };
             const loader = new FBXLoader(this._manager);
             loader.setPath('../resources/kangin_lee/');
-            loader.load('Crouched Walking.fbx', (a) => { _OnLoad('walk', a); });
+            loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
             loader.load('Run.fbx', (a) => { _OnLoad('run', a); });
             loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
-            loader.load('Mma Kick.fbx', (a) => { _OnLoad('dance', a); });
+            loader.load('Hurricane Kick.fbx', (a) => { _OnLoad('dance', a); });
 
         });
 
@@ -251,7 +274,6 @@ class BasicCharacterControllerInput {
                 break;
             case 16: // SHIFT
                 DistFromBox = 18;// increase raycasting distance because character is leaned forward when running
-                console.log(this._keys.backward);
                 if (!this._keys.backward) {
                     this._keys.shift = true;
                 }
@@ -638,6 +660,9 @@ class Main {
     }
 
     _Initialize() {
+        //necessary objects from dom tree
+        timerTag = document.getElementById("timer");
+
         this._threejs = new THREE.WebGLRenderer({
             antialias: true,
         });
@@ -670,7 +695,6 @@ class Main {
         this._cameraOrtho.up.set(0, 1, 0);
         this._cameraOrtho.lookAt(new THREE.Vector3());
         this._camera.add(this._cameraOrtho);
-        console.log(this._camera);
 
         const controls = new OrbitControls(this._camera, this._threejs.domElement);
         controls.keys = {};
@@ -743,7 +767,7 @@ class Main {
         plane.rotation.x = -Math.PI / 2;
         this._scene.add(plane);
 
-        //testing out environment compatability
+        //testing out environment compatability for 3 dimensional playability
 
 
         this._loadEnvironment();
@@ -903,6 +927,15 @@ class Main {
             }
 
             let delta = this._clock.getDelta();
+
+            //timer
+            if (!(secondsDiff > 0)) {
+                clearInterval(timerInterval);
+                paused = true;
+                timerTag.className = "loaderHidden";
+                document.getElementById("gameOver").className = "endGame";
+            }
+
             //dynamic skybox
             const initialRotY = this.skybox.rotation.y;
             const initialRotX = this.skybox.rotation.x;
@@ -932,7 +965,6 @@ class Main {
 
     _Step(timeElapsed) {
         if (!paused) {
-
 
             const timeElapsedS = timeElapsed;
 

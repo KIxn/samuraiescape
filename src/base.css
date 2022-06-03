@@ -277,3 +277,15 @@ a:hover {
     text-align: center !important;
     font-size: xx-large;
 }
+
+.timerBox {
+    font-family: 'Orbitron', sans-serif;
+    background-color: rgba(0, 40, 40, 0.95);
+    position: absolute;
+    left: 45%;
+    top: 2%;
+    color: azure;
+    padding: 0 20px;
+    border-radius: 5px;
+    font-size: xx-large;
+}
