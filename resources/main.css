@@ -1,12 +1,20 @@
 body {
-    background-image: url('./backdrop.jpg');
-    image-rendering: optimizeSpeed;
-    background-size: cover;
-    font-family: 'Lora', serif;
+    height: 100%;
+    margin: 0;
 }
 
 div {
     background-color: rgba(104, 109, 101, 0.95);
+}
+
+canvas {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -9999;
 }
 
 .gameDesc {
