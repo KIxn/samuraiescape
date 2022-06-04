@@ -2,7 +2,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.mod
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
+import Orb from './orb.js';
 
+//TODO Dist between orbs : 60
 
 //Global
 let peekView = false;
@@ -17,6 +19,8 @@ let paused = false;
 let timerTag = null;
 let timerInterval;
 let secondsDiff = 3 * 60; //3 minutes
+let map = false;
+let placeOrb = false;
 
 //Intermediary for animating a character
 class BasicCharacterControllerProxy {
@@ -116,7 +120,7 @@ class Character {
             };
             const loader = new FBXLoader(this._manager);
             loader.setPath('../resources/kangin_lee/');
-            loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
+            loader.load('Crouched Walking.fbx', (a) => { _OnLoad('walk', a); });
             loader.load('Run.fbx', (a) => { _OnLoad('run', a); });
             loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
             loader.load('Hurricane Kick.fbx', (a) => { _OnLoad('dance', a); });
@@ -277,7 +281,6 @@ class BasicCharacterControllerInput {
                 if (!this._keys.backward) {
                     this._keys.shift = true;
                 }
-
                 break;
             case 27:
                 paused = !paused;
@@ -286,6 +289,12 @@ class BasicCharacterControllerInput {
                 } else {
                     document.getElementById('pauseMenu').className = "loaderHidden";
                 }
+                break;
+            case 77:
+                map = !map;
+                break;
+            case 69:
+                placeOrb = true;
                 break;
         }
     }
@@ -654,6 +663,7 @@ class PerspectiveCamera {
 }
 
 
+
 class Main {
     constructor() {
         this._Initialize();
@@ -680,16 +690,16 @@ class Main {
             this._OnWindowResize();
         }, false);
         const fov = 60;
-        const aspect = 1920 / 1080;
+        this._aspect = 1920 / 1080;
         const near = 2.0;
         const far = 1000.0;
 
         //create cameras
-        this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+        this._camera = new THREE.PerspectiveCamera(fov, this._aspect, near, far);
 
         //adjust minimap scale
         let viewSize = 140;
-        this._cameraOrtho = new THREE.OrthographicCamera((aspect * viewSize) / -2, (aspect * viewSize) / 2, (aspect * viewSize) / 2, (aspect * viewSize) / -2, -200, 1000);
+        this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
         this._cameraOrtho.zoom = 100;
         this._cameraOrtho.position.set(0, 30, 0);
         this._cameraOrtho.up.set(0, 1, 0);
@@ -771,6 +781,7 @@ class Main {
 
 
         this._loadEnvironment();
+        this._loadSolution();
         this._mixers = [];
         this._previousRAF = null;
         this._clock = new THREE.Clock();
@@ -812,7 +823,6 @@ class Main {
         pos.y += 60;
         let dir = new THREE.Vector3();
         this._camera.getWorldDirection(dir);
-        let dist = 0;
 
         if (this.environmentProxy != undefined) {
             //cast in front
@@ -900,11 +910,20 @@ class Main {
         const game = this;
         const loader = new FBXLoader();
 
-        loader.load('../resources/maze1.fbx', function (object) {
+        loader.load('../resources/maze3.fbx', function (object) {
             game._scene.add(object);
             object.receiveShadow = true;
             object.name = "Environment";
             game.environmentProxy = object;
+        }, null, this.onError);
+    }
+
+    _loadSolution() {
+        const game = this;
+        const loader = new FBXLoader();
+
+        loader.load('../resources/maze3_sol.fbx', function (object) {
+            game._scene.add(object);
         }, null, this.onError);
     }
 
@@ -928,6 +947,12 @@ class Main {
 
             let delta = this._clock.getDelta();
 
+            //place orb if need be
+            if (placeOrb) {
+                new Orb(Target.Position.x, Target.Position.z, this._scene);
+                placeOrb = false;
+            }
+
             //timer
             if (!(secondsDiff > 0)) {
                 clearInterval(timerInterval);
@@ -935,6 +960,7 @@ class Main {
                 timerTag.className = "loaderHidden";
                 document.getElementById("gameOver").className = "endGame";
             }
+
 
             //dynamic skybox
             const initialRotY = this.skybox.rotation.y;
@@ -952,8 +978,32 @@ class Main {
             this._threejs.setClearColor(0x333333);
             this._threejs.clearDepth();
             this._threejs.setScissorTest(true);
-            this._threejs.setScissor(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
-            this._threejs.setViewport(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+
+            //map view controller
+            if (!map) {
+                let viewSize = 140;
+                this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
+                this._cameraOrtho.zoom = 100;
+                this._cameraOrtho.position.set(0, 30, 0);
+                this._cameraOrtho.up.set(0, 1, 0);
+                this._cameraOrtho.lookAt(new THREE.Vector3());
+                this._camera.add(this._cameraOrtho);
+
+                this._threejs.setScissor(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+                this._threejs.setViewport(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+            }
+            else {
+                let viewSize = 500;
+                this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (viewSize) / 2, (viewSize) / -2, -200, 1000);
+                this._cameraOrtho.zoom = 100;
+                this._cameraOrtho.position.set(0, 30, 0);
+                this._cameraOrtho.up.set(0, 1, 0);
+                this._cameraOrtho.lookAt(new THREE.Vector3());
+                this._camera.add(this._cameraOrtho);
+
+                this._threejs.setScissor(0, 0, window.innerWidth, window.innerHeight);
+                this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
+            }
             this._threejs.render(this._scene, this._cameraOrtho);
             this._threejs.setScissorTest(false);
 
