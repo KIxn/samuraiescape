@@ -755,14 +755,14 @@ class Main {
 
         //plane
         const textureLoader = new THREE.TextureLoader();
-        const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/Marble_White_007_basecolor.jpg");
-        const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Marble_White_007_normal.jpg");
-        const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Marble_White_007_height.png");
-        const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Marble_White_007_roughness.jpg");
-        const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Marble_White_007_ambientOcclusion.jpg");
+        const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_basecolor.jpg");
+        const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_normal.jpg");
+        const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_height.png");
+        const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_roughness.jpg");
+        const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_ambientOcclusion.jpg");
 
         const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(5000, 5000, 10, 10),
+            new THREE.PlaneGeometry(1000, 1000, 10, 10),
             new THREE.MeshStandardMaterial({
                 map: _PlaneBaseCol,
                 normalMap: _PlaneNorm,
