@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.mod
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
+import Stats from '../node_modules/stats.js/src/Stats.js';
 import Orb from './orb.js';
 
 //TODO Dist between orbs : 60
@@ -21,6 +22,28 @@ let timerInterval;
 let secondsDiff = 3 * 60; //3 minutes
 let map = false;
 let placeOrb = false;
+let adversary = null;
+let adversaryMixer = null;
+
+/**
+ * Will show performance stats for things such as
+ * Frame Rate
+ * Time between frames
+ * RAM Usage
+ */
+function creatHUD() {
+    let script = document.createElement("script");
+    script.onload = function () {
+        let stats = new Stats();
+        document.body.appendChild(stats.dom);
+        requestAnimationFrame(function loop() {
+            stats.update();
+            requestAnimationFrame(loop);
+        });
+    };
+    script.src = "//mrdoob.github.io/stats.js/build/stats.min.js";
+    document.head.appendChild(script);
+}
 
 //Intermediary for animating a character
 class BasicCharacterControllerProxy {
@@ -33,6 +56,93 @@ class BasicCharacterControllerProxy {
     }
 };
 
+//Mechanics to control the adversary character
+class Adversary {
+    constructor(scene) {
+        this._scene = scene;
+        this._animations = {};
+        this._Init()
+    }
+
+    _Init() {
+        const loader = new FBXLoader();
+        loader.setPath('../resources/adversary/');
+        loader.load('Ch25_nonPBR.fbx', (fbx) => {
+            fbx.scale.setScalar(0.15);
+            fbx.traverse(c => {
+                c.castShadow = true;
+            });
+
+            this._target = fbx;
+            adversary = this._target;
+            this._target.translateZ(-30);
+            this._scene.add(this._target);
+
+            this._manager = new THREE.LoadingManager();
+            this._manager.onLoad = () => {
+                console.log('done loading');
+                document.getElementById('loadingScreen').className = 'loaderHidden';
+                document.getElementById("timer").className = "timerBox";
+                timerInterval = setInterval(() => {
+                    //if dom is rendered
+                    if (timerTag) {
+                        //calc time diff
+                        let minutes = Math.floor(secondsDiff / 60);
+                        let seconds = secondsDiff - (minutes * 60);
+                        if (minutes < 10) {
+                            minutes = "0" + minutes.toString();
+                        }
+                        else {
+                            minutes = minutes.toString();
+                        }
+                        if (seconds < 10) {
+                            seconds = "0" + seconds.toString();
+                        }
+                        else {
+                            seconds = seconds.toString();
+                        }
+                        timerTag.innerHTML = minutes + ":" + seconds;
+                        secondsDiff--;
+                    }
+                }, 1000);
+                this.setIdle();
+            };
+
+            this._mixer = new THREE.AnimationMixer(this._target);
+            adversaryMixer = this._mixer;
+
+            const _OnLoad = (animName, anim) => {
+                const clip = anim.animations[0];
+                const action = this._mixer.clipAction(clip);
+                action.clampWhenFinished = true;
+                action.loop = THREE.LoopRepeat;
+
+                this._animations[animName] = {
+                    clip: clip,
+                    action: action,
+                };
+            };
+            const loader = new FBXLoader(this._manager);
+            loader.setPath('../resources/adversary/');
+            loader.load('Crouch Idle.fbx', (a) => { _OnLoad('idle', a); });
+            loader.load('Mutant Run.fbx', (a) => { _OnLoad('run', a); });
+            loader.load('Running Crawl.fbx', (a) => { _OnLoad('crawlRun', a); });
+
+        });
+    };
+
+    setIdle() {
+        if (this._animations['crawlRun']) {
+            const idleAction = this._animations['crawlRun'].action;
+            idleAction.play();
+        }
+    }
+
+    Update() {
+
+
+    }
+}
 //Mechanics behind using a character
 class Character {
     constructor(params) {
@@ -70,40 +180,8 @@ class Character {
                 c.castShadow = true;
             });
 
-
-
             this._target = fbx;
             this._params.scene.add(this._target);
-
-            this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = () => {
-                console.log('done loading');
-                this._stateMachine.SetState('idle');
-                document.getElementById('loadingScreen').className = 'loaderHidden';
-                document.getElementById("timer").className = "timerBox";
-                timerInterval = setInterval(() => {
-                    //if dom is rendered
-                    if (timerTag) {
-                        //calc time diff
-                        let minutes = Math.floor(secondsDiff / 60);
-                        let seconds = secondsDiff - (minutes * 60);
-                        if (minutes < 10) {
-                            minutes = "0" + minutes.toString();
-                        }
-                        else {
-                            minutes = minutes.toString();
-                        }
-                        if (seconds < 10) {
-                            seconds = "0" + seconds.toString();
-                        }
-                        else {
-                            seconds = seconds.toString();
-                        }
-                        timerTag.innerHTML = minutes + ":" + seconds;
-                        secondsDiff--;
-                    }
-                }, 1000);
-            };
 
             this._mixer = new THREE.AnimationMixer(this._target);
 
@@ -670,6 +748,9 @@ class Main {
     }
 
     _Initialize() {
+        //stats
+        creatHUD()
+
         //necessary objects from dom tree
         timerTag = document.getElementById("timer");
 
@@ -722,8 +803,8 @@ class Main {
         light.target.position.set(0, 0, 0);
         light.castShadow = true;
         light.shadow.bias = -0.001;
-        light.shadow.mapSize.width = 4096;
-        light.shadow.mapSize.height = 4096;
+        light.shadow.mapSize.width = 512;
+        light.shadow.mapSize.height = 512;
         light.shadow.camera.near = 0.1;
         light.shadow.camera.far = 500.0;
         light.shadow.camera.near = 0.5;
@@ -865,8 +946,8 @@ class Main {
             camera: this._camera,
             scene: this._scene,
         }
+        adversary = new Adversary(this._scene);
         this._controls = new Character(params);
-
 
         AvailableControls = this._controls._input._keys;
 
@@ -912,7 +993,7 @@ class Main {
 
         loader.load('../resources/maze3.fbx', function (object) {
             game._scene.add(object);
-            object.receiveShadow = true;
+            //object.receiveShadow = true;
             object.name = "Environment";
             game.environmentProxy = object;
         }, null, this.onError);
@@ -923,6 +1004,7 @@ class Main {
         const loader = new FBXLoader();
 
         loader.load('../resources/maze3_sol.fbx', function (object) {
+            object.position.y = -12;
             game._scene.add(object);
         }, null, this.onError);
     }
@@ -946,6 +1028,10 @@ class Main {
             }
 
             let delta = this._clock.getDelta();
+
+            if (adversaryMixer) {
+                adversaryMixer.update(delta);
+            }
 
             //place orb if need be
             if (placeOrb) {
