@@ -739,9 +739,6 @@ class PerspectiveCamera {
 
 
 }
-
-
-
 class Main {
     constructor() {
         this._Initialize();
@@ -1031,6 +1028,7 @@ class Main {
 
             if (adversaryMixer) {
                 adversaryMixer.update(delta);
+                adversary.translateZ(1);
             }
 
             //place orb if need be
