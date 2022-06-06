@@ -22,7 +22,8 @@ let timerInterval;
 let secondsDiff = 3 * 60; //3 minutes
 let map = false;
 let placeOrb = false;
-var stats = new Stats();
+let adversary = null;
+let adversaryMixer = null;
 
 /**
  * Will show performance stats for things such as
@@ -55,6 +56,93 @@ class BasicCharacterControllerProxy {
     }
 };
 
+//Mechanics to control the adversary character
+class Adversary {
+    constructor(scene) {
+        this._scene = scene;
+        this._animations = {};
+        this._Init()
+    }
+
+    _Init() {
+        const loader = new FBXLoader();
+        loader.setPath('../resources/adversary/');
+        loader.load('Ch25_nonPBR.fbx', (fbx) => {
+            fbx.scale.setScalar(0.15);
+            fbx.traverse(c => {
+                c.castShadow = true;
+            });
+
+            this._target = fbx;
+            adversary = this._target;
+            this._target.translateZ(-30);
+            this._scene.add(this._target);
+
+            this._manager = new THREE.LoadingManager();
+            this._manager.onLoad = () => {
+                console.log('done loading');
+                document.getElementById('loadingScreen').className = 'loaderHidden';
+                document.getElementById("timer").className = "timerBox";
+                timerInterval = setInterval(() => {
+                    //if dom is rendered
+                    if (timerTag) {
+                        //calc time diff
+                        let minutes = Math.floor(secondsDiff / 60);
+                        let seconds = secondsDiff - (minutes * 60);
+                        if (minutes < 10) {
+                            minutes = "0" + minutes.toString();
+                        }
+                        else {
+                            minutes = minutes.toString();
+                        }
+                        if (seconds < 10) {
+                            seconds = "0" + seconds.toString();
+                        }
+                        else {
+                            seconds = seconds.toString();
+                        }
+                        timerTag.innerHTML = minutes + ":" + seconds;
+                        secondsDiff--;
+                    }
+                }, 1000);
+                this.setIdle();
+            };
+
+            this._mixer = new THREE.AnimationMixer(this._target);
+            adversaryMixer = this._mixer;
+
+            const _OnLoad = (animName, anim) => {
+                const clip = anim.animations[0];
+                const action = this._mixer.clipAction(clip);
+                action.clampWhenFinished = true;
+                action.loop = THREE.LoopRepeat;
+
+                this._animations[animName] = {
+                    clip: clip,
+                    action: action,
+                };
+            };
+            const loader = new FBXLoader(this._manager);
+            loader.setPath('../resources/adversary/');
+            loader.load('Crouch Idle.fbx', (a) => { _OnLoad('idle', a); });
+            loader.load('Mutant Run.fbx', (a) => { _OnLoad('run', a); });
+            loader.load('Running Crawl.fbx', (a) => { _OnLoad('crawlRun', a); });
+
+        });
+    };
+
+    setIdle() {
+        if (this._animations['crawlRun']) {
+            const idleAction = this._animations['crawlRun'].action;
+            idleAction.play();
+        }
+    }
+
+    Update() {
+
+
+    }
+}
 //Mechanics behind using a character
 class Character {
     constructor(params) {
@@ -92,41 +180,8 @@ class Character {
                 c.castShadow = true;
             });
 
-
-
             this._target = fbx;
-            console.log(this._target);
             this._params.scene.add(this._target);
-
-            this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = () => {
-                console.log('done loading');
-                this._stateMachine.SetState('idle');
-                document.getElementById('loadingScreen').className = 'loaderHidden';
-                document.getElementById("timer").className = "timerBox";
-                timerInterval = setInterval(() => {
-                    //if dom is rendered
-                    if (timerTag) {
-                        //calc time diff
-                        let minutes = Math.floor(secondsDiff / 60);
-                        let seconds = secondsDiff - (minutes * 60);
-                        if (minutes < 10) {
-                            minutes = "0" + minutes.toString();
-                        }
-                        else {
-                            minutes = minutes.toString();
-                        }
-                        if (seconds < 10) {
-                            seconds = "0" + seconds.toString();
-                        }
-                        else {
-                            seconds = seconds.toString();
-                        }
-                        timerTag.innerHTML = minutes + ":" + seconds;
-                        secondsDiff--;
-                    }
-                }, 1000);
-            };
 
             this._mixer = new THREE.AnimationMixer(this._target);
 
@@ -693,10 +748,8 @@ class Main {
     }
 
     _Initialize() {
-        creatHUD()
         //stats
-        // stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        // document.body.appendChild(stats.dom);
+        creatHUD()
 
         //necessary objects from dom tree
         timerTag = document.getElementById("timer");
@@ -893,8 +946,8 @@ class Main {
             camera: this._camera,
             scene: this._scene,
         }
+        adversary = new Adversary(this._scene);
         this._controls = new Character(params);
-
 
         AvailableControls = this._controls._input._keys;
 
@@ -940,7 +993,7 @@ class Main {
 
         loader.load('../resources/maze3.fbx', function (object) {
             game._scene.add(object);
-            object.receiveShadow = true;
+            //object.receiveShadow = true;
             object.name = "Environment";
             game.environmentProxy = object;
         }, null, this.onError);
@@ -951,6 +1004,7 @@ class Main {
         const loader = new FBXLoader();
 
         loader.load('../resources/maze3_sol.fbx', function (object) {
+            object.position.y = -12;
             game._scene.add(object);
         }, null, this.onError);
     }
@@ -969,14 +1023,15 @@ class Main {
 
     _RAF() {
         requestAnimationFrame((t) => {
-            console.log(this._threejs.info);
-
-            //stats.begin();
             if (this._previousRAF === null) {
                 this._previousRAF = t;
             }
 
             let delta = this._clock.getDelta();
+
+            if (adversaryMixer) {
+                adversaryMixer.update(delta);
+            }
 
             //place orb if need be
             if (placeOrb) {
@@ -1040,7 +1095,6 @@ class Main {
 
             this._Step(delta);
             this._previousRAF = t;
-            //stats.end();
             this._RAF();
         });
     }
