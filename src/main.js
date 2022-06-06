@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.mod
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
+import Stats from '../node_modules/stats.js/src/Stats.js';
 import Orb from './orb.js';
 
 //TODO Dist between orbs : 60
@@ -21,6 +22,27 @@ let timerInterval;
 let secondsDiff = 3 * 60; //3 minutes
 let map = false;
 let placeOrb = false;
+var stats = new Stats();
+
+/**
+ * Will show performance stats for things such as
+ * Frame Rate
+ * Time between frames
+ * RAM Usage
+ */
+function creatHUD() {
+    let script = document.createElement("script");
+    script.onload = function () {
+        let stats = new Stats();
+        document.body.appendChild(stats.dom);
+        requestAnimationFrame(function loop() {
+            stats.update();
+            requestAnimationFrame(loop);
+        });
+    };
+    script.src = "//mrdoob.github.io/stats.js/build/stats.min.js";
+    document.head.appendChild(script);
+}
 
 //Intermediary for animating a character
 class BasicCharacterControllerProxy {
@@ -73,6 +95,7 @@ class Character {
 
 
             this._target = fbx;
+            console.log(this._target);
             this._params.scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
@@ -670,6 +693,11 @@ class Main {
     }
 
     _Initialize() {
+        creatHUD()
+        //stats
+        // stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        // document.body.appendChild(stats.dom);
+
         //necessary objects from dom tree
         timerTag = document.getElementById("timer");
 
@@ -722,8 +750,8 @@ class Main {
         light.target.position.set(0, 0, 0);
         light.castShadow = true;
         light.shadow.bias = -0.001;
-        light.shadow.mapSize.width = 4096;
-        light.shadow.mapSize.height = 4096;
+        light.shadow.mapSize.width = 512;
+        light.shadow.mapSize.height = 512;
         light.shadow.camera.near = 0.1;
         light.shadow.camera.far = 500.0;
         light.shadow.camera.near = 0.5;
@@ -941,6 +969,9 @@ class Main {
 
     _RAF() {
         requestAnimationFrame((t) => {
+            console.log(this._threejs.info);
+
+            //stats.begin();
             if (this._previousRAF === null) {
                 this._previousRAF = t;
             }
@@ -1009,6 +1040,7 @@ class Main {
 
             this._Step(delta);
             this._previousRAF = t;
+            //stats.end();
             this._RAF();
         });
     }
