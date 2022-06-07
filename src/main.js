@@ -9,7 +9,7 @@ import Orb from './orb.js';
 
 //Global
 let peekView = false;
-let Target = null;
+let Target = null; //Target.getTarget().Position will return position of kangin
 let AvailableControls = null;
 let panning = false;
 let pos = null;
@@ -22,8 +22,9 @@ let timerInterval;
 let secondsDiff = 3 * 60; //3 minutes
 let map = false;
 let placeOrb = false;
-let adversary = null;
+let adversary = null; // adversary.getTarget().position will return position of enemy
 let adversaryMixer = null;
+let light;
 
 /**
  * Will show performance stats for things such as
@@ -68,13 +69,12 @@ class Adversary {
         const loader = new FBXLoader();
         loader.setPath('../resources/adversary/');
         loader.load('Ch25_nonPBR.fbx', (fbx) => {
-            fbx.scale.setScalar(0.15);
+            fbx.scale.setScalar(0.07);
             fbx.traverse(c => {
                 c.castShadow = true;
             });
 
             this._target = fbx;
-            adversary = this._target;
             this._target.translateZ(-30);
             this._scene.add(this._target);
 
@@ -133,15 +133,26 @@ class Adversary {
 
     setIdle() {
         if (this._animations['crawlRun']) {
-            const idleAction = this._animations['crawlRun'].action;
+            const idleAction = this._animations['idle'].action;
             idleAction.play();
         }
     }
 
-    Update() {
-        //TODO
-        //scan for kangin and move
+    Update(delta) {
+        if (this._mixer && this._mixer) {
+            this._mixer.update(delta);
+            //this._target.translateZ(1);
+        }
 
+        //TODO scan for kangin, and move accordingly
+
+    }
+
+    getTarget() {
+        if (this._target) {
+            const controlObject = this._target;
+            return (controlObject);
+        }
     }
 }
 //Mechanics behind using a character
@@ -740,6 +751,9 @@ class PerspectiveCamera {
 
 
 }
+
+
+
 class Main {
     constructor() {
         this._Initialize();
@@ -796,7 +810,10 @@ class Main {
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
-        let light = new THREE.DirectionalLight(0xFFFFFF, 1.5);
+        light = new THREE.AmbientLight(0xFFFFFF, 0.5);
+        this._scene.add(light);
+
+        light = new THREE.DirectionalLight(0xFFFFFF, 1.5);
         light.position.set(-100, 200, 300);
         light.target.position.set(0, 0, 0);
         light.castShadow = true;
@@ -811,9 +828,7 @@ class Main {
         light.shadow.camera.right = -50;
         light.shadow.camera.top = 50;
         light.shadow.camera.bottom = -50;
-        this._scene.add(light);
 
-        light = new THREE.AmbientLight(0xFFFFFF, 0.5);
         this._scene.add(light);
 
 
@@ -836,12 +851,12 @@ class Main {
         const textureLoader = new THREE.TextureLoader();
         const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_basecolor.jpg");
         const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_normal.jpg");
-        const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_height.png");
         const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_roughness.jpg");
         const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_ambientOcclusion.jpg");
+        const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_height.png");
 
         const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(1000, 1000, 10, 10),
+            new THREE.PlaneGeometry(5000, 5000, 10, 10),
             new THREE.MeshStandardMaterial({
                 map: _PlaneBaseCol,
                 normalMap: _PlaneNorm,
@@ -1021,15 +1036,15 @@ class Main {
 
     _RAF() {
         requestAnimationFrame((t) => {
+
             if (this._previousRAF === null) {
                 this._previousRAF = t;
             }
 
             let delta = this._clock.getDelta();
 
-            if (adversaryMixer) {
-                adversaryMixer.update(delta);
-                adversary.translateZ(1);
+            if (adversary) {
+                adversary.Update(delta);
             }
 
             //place orb if need be
