@@ -139,7 +139,8 @@ class Adversary {
     }
 
     Update() {
-
+        //TODO
+        //scan for kangin and move
 
     }
 }
