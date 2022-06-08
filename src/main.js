@@ -72,6 +72,8 @@ class Adversary {
     }
 
     _Init() {
+        this._prevDist = 0;
+        this._prevZdiff = 0;
         this._raycaster = new THREE.Raycaster();
         const loader = new FBXLoader();
         loader.setPath('../resources/adversary/');
@@ -183,17 +185,26 @@ class Adversary {
                 }
             });
 
-            try {
-                var dist = Math.sqrt(Math.pow((Target.Position.x - this._target.position.x), 2) + Math.pow((Target.Position.z - this._target.position.z), 2));
-                var zdiff = Math.abs(this._target.position.z - Target.Position.z);
-                console.log(dist);
-                console.log(zdiff);
-                console.log(Math.asin(zdiff / dist))
-                this._target.rotateY(Math.asin(zdiff / dist));
-                // const lag = 0.02;
-                // this._target.position.x += intersect.object.position.x * lag;
-                // this._target.position.z += intersect.object.position.z * lag;
-                this._target.translateZ(1);
+            try {//TODO fix movement
+                var dist = Math.round(Math.sqrt(Math.pow((Target.Position.x - this._target.position.x), 2) + Math.pow((Target.Position.z - this._target.position.z), 2)));
+                var zdiff = Math.round(Math.abs(this._target.position.z - Target.Position.z));
+                if ((this._prevDist != dist) && (this._prevZdiff != zdiff)) {
+                    console.log(dist);
+                    console.log(zdiff);
+                    console.log(Math.asin(zdiff / dist))
+                    const lag = 0.02;
+                    //TODO calc rotatation in relation to world
+                    const calcRot = () => {
+                        //FIXME determine calculations
+                    }
+                    this._target.rotateY(Math.asin(zdiff / dist));
+                    // this._target.position.x += intersect.object.position.x * lag;
+                    // this._target.position.z += intersect.object.position.z * lag;
+                    this._target.translateZ(1 * lag);
+                    this._prevDist = dist;
+                    this._prevZdiff = zdiff;
+                }
+
             } catch (error) {
 
             }
