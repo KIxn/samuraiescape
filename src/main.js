@@ -23,8 +23,14 @@ let secondsDiff = 3 * 60; //3 minutes
 let map = false;
 let placeOrb = false;
 let adversary = null; // adversary.getTarget().position will return position of enemy
-let adversaryMixer = null;
 let light;
+let search = [];
+
+function Distance(x1, z1, x2, z2) {
+    var dist = Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((z1 - z2), 2));
+    console.log(dist);
+    return (dist);
+}
 
 /**
  * Will show performance stats for things such as
@@ -66,10 +72,11 @@ class Adversary {
     }
 
     _Init() {
+        this._raycaster = new THREE.Raycaster();
         const loader = new FBXLoader();
         loader.setPath('../resources/adversary/');
         loader.load('Ch25_nonPBR.fbx', (fbx) => {
-            fbx.scale.setScalar(0.07);
+            fbx.scale.setScalar(0.15);
             fbx.traverse(c => {
                 c.castShadow = true;
             });
@@ -79,8 +86,9 @@ class Adversary {
             this._scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = () => {
+            this._manager.onLoad = async () => {
                 console.log('done loading');
+                await new Promise(r => setTimeout(r, 2000));
                 document.getElementById('loadingScreen').className = 'loaderHidden';
                 document.getElementById("timer").className = "timerBox";
                 timerInterval = setInterval(() => {
@@ -102,14 +110,15 @@ class Adversary {
                             seconds = seconds.toString();
                         }
                         timerTag.innerHTML = minutes + ":" + seconds;
-                        secondsDiff--;
+                        if (!paused) {
+                            secondsDiff--;
+                        }
                     }
                 }, 1000);
-                this.setIdle();
+                this.setCrawl();
             };
 
             this._mixer = new THREE.AnimationMixer(this._target);
-            adversaryMixer = this._mixer;
 
             const _OnLoad = (animName, anim) => {
                 const clip = anim.animations[0];
@@ -138,14 +147,57 @@ class Adversary {
         }
     }
 
-    Update(delta) {
-        if (this._mixer && this._mixer) {
-            this._mixer.update(delta);
-            //this._target.translateZ(1);
+    setRun() {
+        if (this._animations['crawlRun']) {
+            const runAction = this._animations['run'].action;
+            runAction.play();
         }
+    }
 
-        //TODO scan for kangin, and move accordingly
+    setCrawl() {
+        if (this._animations['crawlRun']) {
+            const crawlAction = this._animations['crawlRun'].action;
+            crawlAction.play();
+        }
+    }
 
+    Update(delta) {
+        if (this._mixer && this._target) {
+            this._mixer.update(delta);
+
+            //TODO scan for kangin, and move accordingly
+            let intersect;
+            search.forEach((direction) => {
+                //set raycaster to look int particlar direction
+                this._raycaster.set(this._target.position, direction, 0, 50);
+
+                const intersects = this._raycaster.intersectObjects(this._scene.children, false);
+
+
+                try {
+                    if (intersects[0].object.position.equals(Target.Position)) {
+                        intersect = intersect[0];
+                    }
+                } catch (error) {
+
+                }
+            });
+
+            try {
+                var dist = Math.sqrt(Math.pow((Target.Position.x - this._target.position.x), 2) + Math.pow((Target.Position.z - this._target.position.z), 2));
+                var zdiff = Math.abs(this._target.position.z - Target.Position.z);
+                console.log(dist);
+                console.log(zdiff);
+                console.log(Math.asin(zdiff / dist))
+                this._target.rotateY(Math.asin(zdiff / dist));
+                // const lag = 0.02;
+                // this._target.position.x += intersect.object.position.x * lag;
+                // this._target.position.z += intersect.object.position.z * lag;
+                this._target.translateZ(1);
+            } catch (error) {
+
+            }
+        }
     }
 
     getTarget() {
@@ -190,9 +242,11 @@ class Character {
             fbx.scale.setScalar(0.1);
             fbx.traverse(c => {
                 c.castShadow = true;
+                c.userData.name = "kangin";
             });
 
             this._target = fbx;
+            this._target.userData.name = "kangin";
             this._params.scene.add(this._target);
 
             this._mixer = new THREE.AnimationMixer(this._target);
@@ -761,7 +815,12 @@ class Main {
 
     _Initialize() {
         //stats
-        creatHUD()
+        creatHUD();
+
+        //get search directions
+        for (let i = 0; i < 360; i += 3) {
+            search[i] = new THREE.Vector3(Math.cos(i), 0, Math.sin(i));
+        }
 
         //necessary objects from dom tree
         timerTag = document.getElementById("timer");
@@ -1036,16 +1095,11 @@ class Main {
 
     _RAF() {
         requestAnimationFrame((t) => {
-
             if (this._previousRAF === null) {
                 this._previousRAF = t;
             }
 
             let delta = this._clock.getDelta();
-
-            if (adversary) {
-                adversary.Update(delta);
-            }
 
             //place orb if need be
             if (placeOrb) {
@@ -1115,7 +1169,6 @@ class Main {
 
     _Step(timeElapsed) {
         if (!paused) {
-
             const timeElapsedS = timeElapsed;
 
             this._movePlayer(timeElapsedS);
@@ -1126,6 +1179,10 @@ class Main {
 
             if (this._controls) {
                 this._controls.Update(timeElapsedS);
+            }
+
+            if (adversary) {
+                adversary.Update(timeElapsedS);
             }
 
             if (peekView) {
