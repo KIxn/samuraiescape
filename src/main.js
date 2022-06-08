@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.mod
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
-import Stats from '../node_modules/stats.js/src/Stats.js';
+//import Stats from '../node_modules/stats.js/src/Stats.js';
 import Orb from './orb.js';
 
 //TODO Dist between orbs : 60
@@ -15,7 +15,9 @@ let panning = false;
 let pos = null;
 let Cam = null;
 let ctrls = null;
-let DistFromBox = 8;
+let Walk_dist=15;
+let Run_dist=25;
+let DistFromBox = Walk_dist;
 let paused = false;
 let timerTag = null;
 let timerInterval;
@@ -367,7 +369,7 @@ class BasicCharacterControllerInput {
                 this._keys.space = true;
                 break;
             case 16: // SHIFT
-                DistFromBox = 18;// increase raycasting distance because character is leaned forward when running
+                DistFromBox = Run_dist;// increase raycasting distance because character is leaned forward when running
                 if (!this._keys.backward) {
                     this._keys.shift = true;
                 }
@@ -407,7 +409,7 @@ class BasicCharacterControllerInput {
                 this._keys.space = false;
                 break;
             case 16: // SHIFT
-                DistFromBox = 8; // set raycasting distance back to 8 because character is walking normally
+                DistFromBox = Walk_dist; // set raycasting distance back to 8 because character is walking normally
                 this._keys.shift = false;
                 break;
             case 67:
@@ -879,9 +881,27 @@ class Main {
         this._mixers = [];
         this._previousRAF = null;
         this._clock = new THREE.Clock();
-
+        this._cube=this._CreateCentreCube();
+        this._cube.position.set(-38.234280902886155, 20, 929.8273839831012);
+        this._cube.rotateZ(Math.PI/4);
+        this._cube.rotateY(Math.PI/4);
+        this._scene.add(this._cube);
         this._LoadAnimatedModel(controls);
         this._RAF();
+    }
+    _CreateCentreCube(){
+        const Cube_Loader = new THREE.TextureLoader();
+        //load texture
+        const Cube_text = Cube_Loader.load("../resources/black_marble.jpg");
+        const c = new THREE.BoxGeometry(20, 20, 20);
+        //set the material
+        const material = new THREE.MeshBasicMaterial({map: Cube_text});
+        //create a mesh
+        const cube = new THREE.Mesh(c,material);
+        cube.rotateY(Math.PI/2);
+        //set position
+        cube.position.set(0, 15, 0);
+      return cube;
     }
 
     _generateMaterialsArray(urls = []) {
@@ -1112,13 +1132,35 @@ class Main {
             this._RAF();
         });
     }
+    _CheckWin(){
+        let cx=this._cube.position.x;
+        let cy=0;
+        let cz=this._cube.position.z;
+        let tx=Target.Position.x;
+        let ty=0;
+        let tz=Target.Position.z;
+
+        let dist=Math.sqrt(Math.pow(cx-tx,2)+Math.pow(cy-ty,2)+Math.pow(cz-tz,2));
+        if ((dist)<22)
+        {
+            AvailableControls.forward= false;
+            return true;
+        }
+        else{
+            //AvailableControls.forward= true;
+            return false;
+        }
+    }
 
     _Step(timeElapsed) {
         if (!paused) {
-
+            if (this._CheckWin()){
+                console.log("You win,proceed to next level");
+            }
+            this._cube.rotation.y += -0.02;
             const timeElapsedS = timeElapsed;
 
-            this._movePlayer(timeElapsedS);
+            //this._movePlayer(timeElapsedS);
             if (this._mixers) {
                 //update mixers
                 this._mixers.map(m => m.update(timeElapsedS));
