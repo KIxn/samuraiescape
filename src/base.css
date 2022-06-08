@@ -277,7 +277,18 @@ a:hover {
     text-align: center !important;
     font-size: xx-large;
 }
-
+.endLevel {
+    display: flex;
+    flex-flow: column;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.75);
+    text-align: center !important;
+    font-size: xx-large;
+}
 .timerBox {
     font-family: 'Orbitron', sans-serif;
     background-color: rgba(0, 40, 40, 0.95);
