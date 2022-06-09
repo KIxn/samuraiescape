@@ -137,7 +137,7 @@ class Adversary {
                     adversaryMusic = tmp;
                     adversaryMusic.setBuffer(buffer);
                     adversaryMusic.setLoop(true);
-                    adversaryMusic.setRefDistance(60);
+                    adversaryMusic.setRefDistance(75);
                     adversaryMusic.setVolume(2);
                     adversaryMusic.play();
                 });
@@ -1262,12 +1262,15 @@ class Main {
                 game.environmentProxy = object;
             }, null, this.onError);
         } else if (level === '2') {
-            loader.load('../resources/mazes/lvl2_maze.fbx', function(object) {
+            loader.load('../resources/mazes/maze2.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 console.log(object);
                 object.name = "Environment";
                 game.environmentProxy = object;
+                object.traverse((t) => {
+                    t.name = "Environment";
+                })
             }, null, this.onError);
         } else {
             loader.load('../resources/mazes/lvl3_maze.fbx', function(object) {
