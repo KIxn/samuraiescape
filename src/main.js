@@ -25,6 +25,7 @@ let placeOrb = false;
 let adversary = null; // adversary.getTarget().position will return position of enemy
 let light;
 let search = [];
+let platform;
 let solution = null;
 
 function Distance(x1, z1, x2, z2) {
@@ -41,7 +42,7 @@ function Distance(x1, z1, x2, z2) {
  */
 function creatHUD() {
     let script = document.createElement("script");
-    script.onload = function () {
+    script.onload = function() {
         let stats = new Stats();
         document.body.appendChild(stats.dom);
         requestAnimationFrame(function loop() {
@@ -89,7 +90,7 @@ class Adversary {
             this._scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = async () => {
+            this._manager.onLoad = async() => {
                 console.log('done loading');
                 await new Promise(r => setTimeout(r, 2000));
                 document.getElementById('loadingScreen').className = 'loaderHidden';
@@ -102,14 +103,12 @@ class Adversary {
                         let seconds = secondsDiff - (minutes * 60);
                         if (minutes < 10) {
                             minutes = "0" + minutes.toString();
-                        }
-                        else {
+                        } else {
                             minutes = minutes.toString();
                         }
                         if (seconds < 10) {
                             seconds = "0" + seconds.toString();
-                        }
-                        else {
+                        } else {
                             seconds = seconds.toString();
                         }
                         timerTag.innerHTML = minutes + ":" + seconds;
@@ -422,7 +421,7 @@ class BasicCharacterControllerInput {
                 this._keys.space = true;
                 break;
             case 16: // SHIFT
-                DistFromBox = Run_dist;// increase raycasting distance because character is leaned forward when running
+                DistFromBox = Run_dist; // increase raycasting distance because character is leaned forward when running
                 if (!this._keys.backward) {
                     this._keys.shift = true;
                 }
@@ -528,9 +527,9 @@ class State {
         this._parent = parent;
     }
 
-    Enter() { }
-    Exit() { }
-    Update() { }
+    Enter() {}
+    Exit() {}
+    Update() {}
 };
 
 //States defining characters movement
@@ -581,8 +580,7 @@ class AttackState extends State {
         this._Cleanup();
     }
 
-    Update(_) {
-    }
+    Update(_) {}
 };
 
 
@@ -618,8 +616,7 @@ class WalkState extends State {
         }
     }
 
-    Exit() {
-    }
+    Exit() {}
 
     Update(timeElapsed, input) {
 
@@ -666,8 +663,7 @@ class RunState extends State {
         }
     }
 
-    Exit() {
-    }
+    Exit() {}
 
     Update(timeElapsed, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -706,8 +702,7 @@ class IdleState extends State {
         }
     }
 
-    Exit() {
-    }
+    Exit() {}
 
     Update(_, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -798,8 +793,7 @@ class PerspectiveCamera {
 
             this._camera.position.copy(this._currentPosition);
             this._camera.lookAt(this._currentLookat);
-        }
-        else {
+        } else {
             this._controls.update();
         }
     }
@@ -939,11 +933,26 @@ class Main {
         this._mixers = [];
         this._previousRAF = null;
         this._clock = new THREE.Clock();
-        this._cube = this._CreateCentreCube();
-        this._cube.position.set(-38.234280902886155, 20, 929.8273839831012);
-        this._cube.rotateZ(Math.PI / 4);
-        this._cube.rotateY(Math.PI / 4);
-        this._scene.add(this._cube);
+
+
+        //Draw platform (goal of maze) with difference coloured gems
+        var path = window.location.pathname;
+        var level = path.split("/").pop().charAt(5);
+        this._platform = this._DrawPlatForm(level);
+        if (level === '1') {
+            this._platform.position.set(-25.826967788871027, 0, 626.0965432774168);
+        } else if (level == '2') {
+            this._platform.position.set(2.8251132620141375, 0, 722.0679682006315);
+
+        } else {
+            this._platform.position.set(-38.234280902886155, 0, 929.8273839831012);
+        }
+        this._scene.add(this._platform);
+
+
+
+
+
         this._LoadAnimatedModel(controls);
         this._RAF();
     }
@@ -1022,9 +1031,9 @@ class Main {
         let blocked = false;
         for (let box of this.environmentProxy.children) { //environmentProxy stores all the boxes that we created in createDummyEnv
             const intersect = raycaster.intersectObject(box);
-            if (intersect.length > 0) {  //intersect is an array that stores all the boxes that is in the path of our raycaster
+            if (intersect.length > 0) { //intersect is an array that stores all the boxes that is in the path of our raycaster
                 if (intersect[0].distance < DistFromBox) { //it is ordered by distance , so the closest is at pos[0] ,hence intersect[0].
-                    blocked = true;  //Player should not be able to move in that direction
+                    blocked = true; //Player should not be able to move in that direction
                     break;
                 }
             }
@@ -1078,6 +1087,76 @@ class Main {
         });
     }
 
+    _DrawPlatForm(level) {
+        let col;
+        if (level == '1') {
+            col = 0x0000ff;
+        } else if (level == '2') {
+            col = 0x39ff14;
+        } else {
+            col = 0xff0000;
+        }
+        const GemGeo = new THREE.TetrahedronGeometry(5, 1);
+        const GemMaterial = new THREE.MeshBasicMaterial({
+            color: col,
+            wireframe: true,
+            wireframeLinewidth: 1
+        });
+
+        const GemStone = new THREE.Mesh(GemGeo, GemMaterial);
+        //  GemStone.position.set(60, 40, 30);
+        GemStone.position.y = 40;
+        //  this._scene.add(GemStone);
+        //create a stair for each side of the main platform
+        const Plat_Loader = new THREE.TextureLoader();
+        //load texture
+        const Plat_text = Plat_Loader.load("../resources/black_marble.jpg");
+        const stair1 = new THREE.BoxGeometry(10, 8, 10);
+        //set the material
+        const material = new THREE.MeshBasicMaterial({ map: Plat_text });
+        //create a mesh
+        const cube = new THREE.Mesh(stair1, material);
+        //rotate stair
+        //set position of stair case on the right
+        cube.position.y = 30;
+
+
+        //create a stair for each side of the main platform
+        const stair2 = new THREE.BoxGeometry(10, 8, 10);
+        //set the material
+        const material2 = new THREE.MeshBasicMaterial({ map: Plat_text });
+        //create a mesh
+        const cube2 = new THREE.Mesh(stair2, material2);
+        //rotate stair
+        //set position of stair case on the left
+        // cube2.position.set(60, 4, 30);
+        cube2.position.y = 4;
+
+
+        //create middle platform
+        const middle = new THREE.BoxGeometry(7, 25, 7);
+        //set the material
+        const material3 = new THREE.MeshBasicMaterial({ map: Plat_text });
+        //create mesh
+        const cube3 = new THREE.Mesh(middle, material3);
+        //set position of platform
+        // cube3.position.set(60, 20, 30);
+        cube3.position.y = 20;
+
+
+        //create platform group to add all components
+        let platform = new THREE.Group();
+        platform.add(cube);
+        platform.add(cube2);
+        platform.add(cube3);
+        platform.add(GemStone);
+
+        //return platform to render to scene
+        return platform;
+
+
+    }
+
     _loadEnvironment() {
         const game = this;
         const loader = new FBXLoader();
@@ -1088,23 +1167,21 @@ class Main {
         // console.log(page);
 
         if (level === '1') {
-            loader.load('../resources/maze1.fbx', function (object) {
+            loader.load('../resources/maze1.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
                 game.environmentProxy = object;
             }, null, this.onError);
-        }
-        else if (level === '2') {
-            loader.load('../resources/maze2.fbx', function (object) {
+        } else if (level === '2') {
+            loader.load('../resources/maze2.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
                 game.environmentProxy = object;
             }, null, this.onError);
-        }
-        else {
-            loader.load('../resources/maze3.fbx', function (object) {
+        } else {
+            loader.load('../resources/maze3.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
@@ -1122,9 +1199,8 @@ class Main {
         // console.log(page);
         if (level === '1') {
             //no sulution
-        }
-        else if (level === '2') {
-            loader.load('../resources/maze2_sol.fbx', function (object) {
+        } else if (level === '2') {
+            loader.load('../resources/maze2_sol.fbx', function(object) {
                 solution = object;
                 object.translateY(-12);
                 game._scene.add(object);
@@ -1136,9 +1212,8 @@ class Main {
                     solution.visible = !solution.visible;
                 }, 3000);
             }, null, this.onError);
-        }
-        else {
-            loader.load('../resources/maze3_sol.fbx', function (object) {
+        } else {
+            loader.load('../resources/maze3_sol.fbx', function(object) {
                 solution = object;
                 object.translateY(-12);
                 game._scene.add(object);
@@ -1219,8 +1294,7 @@ class Main {
 
                 this._threejs.setScissor(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
                 this._threejs.setViewport(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
-            }
-            else {
+            } else {
                 let viewSize = 500;
                 this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (viewSize) / 2, (viewSize) / -2, -200, 1000);
                 this._cameraOrtho.zoom = 100;
@@ -1253,8 +1327,7 @@ class Main {
         if (diff < 60) {
             return "00:" + diff;
 
-        }
-        else if (diff > 60) {
+        } else if (diff > 60) {
             console.log("here");
             let s = diff % 60;
             let m = (diff - s) / 60;
@@ -1267,19 +1340,18 @@ class Main {
     }
 
     _CheckWin(currTimer) {
-        let cx = this._cube.position.x;
+        let cx = this._platform.position.x;
         let cy = 0;
-        let cz = this._cube.position.z;
+        let cz = this._platform.position.z;
         let tx = Target.Position.x;
         let ty = 0;
         let tz = Target.Position.z;
 
         let dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2) + Math.pow(cz - tz, 2));
-        if ((dist) < 24) { //targets distane from the box
+        if ((dist) < 15) { //targets distane from the box
             AvailableControls.forward = false;
             return true;
-        }
-        else {
+        } else {
             //AvailableControls.forward= true;
             return false;
         }
@@ -1287,6 +1359,8 @@ class Main {
 
     _Step(timeElapsed) {
         if (!paused) {
+            console.log(Target.Position);
+            this._platform.children[3].rotation.y += 0.05;
             let currTimer = timerTag.innerHTML;
             //need to stop the clock
             if (this._CheckWin(currTimer, 3)) {
@@ -1295,10 +1369,10 @@ class Main {
                 // not sure how to call the F prompt @kian
                 document.getElementById("endLevel").className = "endLevel";
             }
-            this._cube.rotation.y += -0.02;
+            // this._cube.rotation.y += -0.02;
             const timeElapsedS = timeElapsed;
 
-            this._movePlayer(timeElapsedS);
+            // this._movePlayer(timeElapsedS);
             if (this._mixers) {
                 //update mixers
                 this._mixers.map(m => m.update(timeElapsedS));
@@ -1314,8 +1388,7 @@ class Main {
 
             if (peekView) {
                 this._perspectiveCamera.Update(timeElapsedS);
-            }
-            else {
+            } else {
                 this._thirdPersonCamera.Update(timeElapsedS);
             }
         }
