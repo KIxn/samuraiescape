@@ -29,6 +29,8 @@ let light;
 let search = [];
 let platform;
 let solution = null;
+let interact = false;
+let solutionInterval = 0;
 
 function Distance(x1, z1, x2, z2) {
     var dist = Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((z1 - z2), 2));
@@ -119,7 +121,7 @@ class Adversary {
                         }
                     }
                 }, 1000);
-                this.setCrawl();
+                (level === '3') ? this.setRun() : this.setCrawl();
             };
 
             this._mixer = new THREE.AnimationMixer(this._target);
@@ -170,7 +172,13 @@ class Adversary {
             this._mixer.update(delta);
 
             if (Target) {
-                let lag = 0.2;
+                let lag = 0.6;
+                if (level === '2') {
+                    lag = 0.8;
+                }
+                else if (level === '3') {
+                    lag = 0.9;
+                }
                 let num = (this._target.position.dot(Target.Position));
                 let den = (this._target.position.length() * Target.Position.length());
                 let theta = Math.acos(num / den);
@@ -488,6 +496,12 @@ class BasicCharacterControllerInput {
                 break;
             case 67:
                 peekView = !peekView
+                break;
+            case 70:
+                if (interact) {
+                    paused = true;
+                    document.getElementById("endLevel").className = "endLevel";
+                }
                 break;
         }
     }
@@ -954,7 +968,7 @@ class Main {
         this._loadEnvironment();
         this._loadSolution();
         this._mixers = [];
-        this._previousRAF = null;
+        this._preveiousRAF = null;
         this._clock = new THREE.Clock();
 
 
@@ -1183,21 +1197,21 @@ class Main {
         // console.log(page);
 
         if (level === '1') {
-            loader.load('../resources/maze1.fbx', function (object) {
+            loader.load('../resources/mazes/lvl1_maze.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
                 game.environmentProxy = object;
             }, null, this.onError);
         } else if (level === '2') {
-            loader.load('../resources/maze2.fbx', function (object) {
+            loader.load('../resources/mazes/lvl2_maze.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
                 game.environmentProxy = object;
             }, null, this.onError);
         } else {
-            loader.load('../resources/maze3.fbx', function (object) {
+            loader.load('../resources/mazes/lvl3_maze.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
@@ -1215,7 +1229,7 @@ class Main {
         if (level === '1') {
             //no sulution
         } else if (level === '2') {
-            loader.load('../resources/maze2_sol.fbx', function (object) {
+            loader.load('../resources/mazes/lvl2_solution.fbx', function (object) {
                 solution = object;
                 object.translateY(-12);
                 game._scene.add(object);
@@ -1224,11 +1238,14 @@ class Main {
                 game.environmentProxy = object;
                 //flash solution
                 setInterval(() => {
-                    solution.visible = !solution.visible;
+                    solution.visible = true;
+                }, 5000);
+                setInterval(() => {
+                    solution.visible = false;
                 }, 3000);
             }, null, this.onError);
         } else {
-            loader.load('../resources/maze3_sol.fbx', function (object) {
+            loader.load('../resources/mazes/lvl3_solution.fbx', function (object) {
                 solution = object;
                 object.translateY(-12);
                 game._scene.add(object);
@@ -1237,12 +1254,25 @@ class Main {
                 game.environmentProxy = object;
                 //flash solution
                 setInterval(() => {
-                    solution.visible = !solution.visible;
+                    solution.visible = true;
                 }, 5000);
+                setInterval(() => {
+                    solution.visible = false;
+                }, 3000);
             }, null, this.onError);
         }
 
 
+    }
+
+    _showSolution() {
+
+    }
+
+    _hideSolution() {
+        if (solution) {
+            solution.visible = false;
+        }
     }
 
     _OnWindowResize() {
@@ -1343,7 +1373,6 @@ class Main {
             return "00:" + diff;
 
         } else if (diff > 60) {
-            console.log("here");
             let s = diff % 60;
             let m = (diff - s) / 60;
 
@@ -1374,16 +1403,17 @@ class Main {
 
     _Step(timeElapsed) {
         if (!paused) {
-            console.log(Target.Position);
             this._platform.children[3].rotation.y += 0.05;
             let currTimer = timerTag.innerHTML;
             //need to stop the clock
-            if (this._CheckWin(currTimer, 3)) {
-                console.log("time taken ", this._CalculateTimeTake(currTimer, 3));
-                document.getElementById("prompt").className = "interactPrompt";
-
-                document.getElementById("endLevel").className = "endLevel";
+            interact = this._CheckWin(currTimer, 3);
+            if (interact) {
+                document.getElementById('prompt').className = 'interactPrompt';
             }
+            else {
+                document.getElementById('prompt').className = 'loaderHidden';
+            }
+
             const timeElapsedS = timeElapsed;
 
             this._movePlayer(timeElapsedS);

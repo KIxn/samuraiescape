@@ -258,7 +258,7 @@ a:hover {
     background-color: rgba(0, 40, 40, 0.95);
     color: azure;
     left: 40%;
-    top: 100%;
+    top: 80%;
     padding: 0.2em 1em;
     letter-spacing: 0.8px;
     word-spacing: 2px;
@@ -277,6 +277,7 @@ a:hover {
     text-align: center !important;
     font-size: xx-large;
 }
+
 .endLevel {
     display: flex;
     flex-flow: column;
@@ -289,6 +290,7 @@ a:hover {
     text-align: center !important;
     font-size: xx-large;
 }
+
 .timerBox {
     font-family: 'Orbitron', sans-serif;
     background-color: rgba(0, 40, 40, 0.95);
