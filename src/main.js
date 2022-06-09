@@ -42,7 +42,7 @@ function Distance(x1, z1, x2, z2) {
  */
 function creatHUD() {
     let script = document.createElement("script");
-    script.onload = function() {
+    script.onload = function () {
         let stats = new Stats();
         document.body.appendChild(stats.dom);
         requestAnimationFrame(function loop() {
@@ -90,7 +90,7 @@ class Adversary {
             this._scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = async() => {
+            this._manager.onLoad = async () => {
                 console.log('done loading');
                 await new Promise(r => setTimeout(r, 2000));
                 document.getElementById('loadingScreen').className = 'loaderHidden';
@@ -547,9 +547,9 @@ class State {
         this._parent = parent;
     }
 
-    Enter() {}
-    Exit() {}
-    Update() {}
+    Enter() { }
+    Exit() { }
+    Update() { }
 };
 
 //States defining characters movement
@@ -600,7 +600,7 @@ class AttackState extends State {
         this._Cleanup();
     }
 
-    Update(_) {}
+    Update(_) { }
 };
 
 
@@ -636,7 +636,7 @@ class WalkState extends State {
         }
     }
 
-    Exit() {}
+    Exit() { }
 
     Update(timeElapsed, input) {
 
@@ -683,7 +683,7 @@ class RunState extends State {
         }
     }
 
-    Exit() {}
+    Exit() { }
 
     Update(timeElapsed, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -722,7 +722,7 @@ class IdleState extends State {
         }
     }
 
-    Exit() {}
+    Exit() { }
 
     Update(_, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -1182,21 +1182,21 @@ class Main {
         // console.log(page);
 
         if (level === '1') {
-            loader.load('../resources/maze1.fbx', function(object) {
+            loader.load('../resources/maze1.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
                 game.environmentProxy = object;
             }, null, this.onError);
         } else if (level === '2') {
-            loader.load('../resources/maze2.fbx', function(object) {
+            loader.load('../resources/maze2.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
                 game.environmentProxy = object;
             }, null, this.onError);
         } else {
-            loader.load('../resources/maze3.fbx', function(object) {
+            loader.load('../resources/maze3.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
@@ -1215,7 +1215,7 @@ class Main {
         if (level === '1') {
             //no sulution
         } else if (level === '2') {
-            loader.load('../resources/maze2_sol.fbx', function(object) {
+            loader.load('../resources/maze2_sol.fbx', function (object) {
                 solution = object;
                 object.translateY(-12);
                 game._scene.add(object);
@@ -1228,7 +1228,7 @@ class Main {
                 }, 3000);
             }, null, this.onError);
         } else {
-            loader.load('../resources/maze3_sol.fbx', function(object) {
+            loader.load('../resources/maze3_sol.fbx', function (object) {
                 solution = object;
                 object.translateY(-12);
                 game._scene.add(object);
@@ -1380,7 +1380,7 @@ class Main {
             //need to stop the clock
             if (this._CheckWin(currTimer, 3)) {
                 console.log("time taken ", this._CalculateTimeTake(currTimer, 3));
-                //document.getElementById("prompt").className = "interactPrompt";
+                document.getElementById("prompt").className = "interactPrompt";
                 // not sure how to call the F prompt @kian
                 document.getElementById("endLevel").className = "endLevel";
             }
