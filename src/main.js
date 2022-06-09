@@ -968,11 +968,6 @@ class Main {
             this._platform.position.set(-38.234280902886155, 0, 929.8273839831012);
         }
         this._scene.add(this._platform);
-
-
-
-
-
         this._LoadAnimatedModel(controls);
         this._RAF();
     }
@@ -1389,10 +1384,9 @@ class Main {
                 // not sure how to call the F prompt @kian
                 document.getElementById("endLevel").className = "endLevel";
             }
-            // this._cube.rotation.y += -0.02;
             const timeElapsedS = timeElapsed;
 
-            // this._movePlayer(timeElapsedS);
+            this._movePlayer(timeElapsedS);
             if (this._mixers) {
                 //update mixers
                 this._mixers.map(m => m.update(timeElapsedS));
