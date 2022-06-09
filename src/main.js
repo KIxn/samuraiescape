@@ -5,8 +5,6 @@ import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples
 //import Stats from '../node_modules/stats.js/src/Stats.js';
 import Orb from './orb.js';
 
-//TODO Dist between orbs : 60
-
 //Global
 let peekView = false;
 let Target = null; //Target.getTarget().Position will return position of kangin
@@ -177,39 +175,28 @@ class Adversary {
 
                 const intersects = this._raycaster.intersectObjects(this._scene.children, false);
 
-
                 try {
-                    if (intersects[0].object.position.equals(Target.Position)) {
-                        intersect = intersect[0];
+                    if (intersects.length > 0) {
+                        if (intersects[0].object.position.equals(Target.Position)) {
+                            //let intersect = intersects[0];
+                            let num = (this._target.position.dot(direction));
+                            let den = (this._target.position.length() * direction.length());
+                            let theta = Math.acos(num / den)
+                            if (den === 0) {
+                                theta = 0;
+                            }
+                            this._target.rotateY(theta);
+                            // if (theta) {
+                            //     console.log(theta);
+                            //     this._tareget.rotateY(theta);
+                            // }
+                            throw 'Break';
+                        }
                     }
                 } catch (error) {
-
+                    if (error !== 'Break') throw error;
                 }
             });
-
-            try {//TODO fix movement
-                var dist = Math.round(Math.sqrt(Math.pow((Target.Position.x - this._target.position.x), 2) + Math.pow((Target.Position.z - this._target.position.z), 2)));
-                var zdiff = Math.round(Math.abs(this._target.position.z - Target.Position.z));
-                if ((this._prevDist != dist) && (this._prevZdiff != zdiff)) {
-                    console.log(dist);
-                    console.log(zdiff);
-                    console.log(Math.asin(zdiff / dist))
-                    const lag = 0.02;
-                    //TODO calc rotatation in relation to world
-                    const calcRot = () => {
-                        //FIXME determine calculations
-                    }
-                    this._target.rotateY(Math.asin(zdiff / dist));
-                    // this._target.position.x += intersect.object.position.x * lag;
-                    // this._target.position.z += intersect.object.position.z * lag;
-                    this._target.translateZ(1 * lag);
-                    this._prevDist = dist;
-                    this._prevZdiff = zdiff;
-                }
-
-            } catch (error) {
-
-            }
         }
     }
 
@@ -1094,22 +1081,65 @@ class Main {
         const game = this;
         const loader = new FBXLoader();
 
-        loader.load('../resources/maze3.fbx', function (object) {
-            game._scene.add(object);
-            //object.receiveShadow = true;
-            object.name = "Environment";
-            game.environmentProxy = object;
-        }, null, this.onError);
+        //
+        var path = window.location.pathname;
+        var level = path.split("/").pop().charAt(5);
+        // console.log(page);
+
+        if (level === '1') {
+            loader.load('../resources/maze1.fbx', function (object) {
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+            }, null, this.onError);
+        }
+        else if (level === '2') {
+            loader.load('../resources/maze2.fbx', function (object) {
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+            }, null, this.onError);
+        }
+        else {
+            loader.load('../resources/maze3.fbx', function (object) {
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+            }, null, this.onError);
+        }
     }
 
     _loadSolution() {
         const game = this;
         const loader = new FBXLoader();
 
-        loader.load('../resources/maze3_sol.fbx', function (object) {
-            object.position.y = -12;
-            game._scene.add(object);
-        }, null, this.onError);
+        var path = window.location.pathname;
+        var level = path.split("/").pop().charAt(5);
+        // console.log(page);
+        if (level === '1') {
+            //no sulution
+        }
+        else if (level === '2') {
+            loader.load('../resources/maze2_sol.fbx', function (object) {
+                object.translateY(-12);
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+            }, null, this.onError);
+        }
+        else {
+            loader.load('../resources/maze3_sol.fbx', function (object) {
+                object.translateY(-12);
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+            }, null, this.onError);
+        }
     }
 
     _OnWindowResize() {
@@ -1233,7 +1263,7 @@ class Main {
 
         let dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2) + Math.pow(cz - tz, 2));
         if ((dist) < 24) { //targets distane from the box
-            AvailableControls.forward= false;
+            AvailableControls.forward = false;
             return true;
         }
         else {
@@ -1247,7 +1277,7 @@ class Main {
             let currTimer = timerTag.innerHTML;
             //need to stop the clock
             if (this._CheckWin(currTimer, 3)) {
-                console.log("time taken ", this._CalculateTimeTake(currTimer,3));
+                console.log("time taken ", this._CalculateTimeTake(currTimer, 3));
                 //document.getElementById("prompt").className = "interactPrompt";
                 // not sure how to call the F prompt @kian
                 document.getElementById("endLevel").className = "endLevel";
