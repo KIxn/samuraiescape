@@ -31,6 +31,10 @@ let platform;
 let solution = null;
 let interact = false;
 let solutionInterval = 0;
+let backgroundMusic;
+let backgroundTheme;
+let adversaryMusic;
+let listener;
 
 function Distance(x1, z1, x2, z2) {
     var dist = Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((z1 - z2), 2));
@@ -122,6 +126,20 @@ class Adversary {
                     }
                 }, 1000);
                 (level === '3') ? this.setRun() : this.setCrawl();
+                //positional
+                let tmp = new THREE.PositionalAudio(listener);
+                const audioLoader = new THREE.AudioLoader();
+
+                audioLoader.load('../resources/sounds/monster_growl.mp3', function (buffer) {
+                    adversaryMusic = tmp;
+                    adversaryMusic.setBuffer(buffer);
+                    adversaryMusic.setLoop(true);
+                    adversaryMusic.setRefDistance(60);
+                    adversaryMusic.setVolume(2);
+                    adversaryMusic.play();
+                });
+
+                this._target.add(adversaryMusic);
             };
 
             this._mixer = new THREE.AnimationMixer(this._target);
@@ -459,6 +477,7 @@ class BasicCharacterControllerInput {
             case 27:
                 paused = !paused;
                 if (paused) {
+                    //listener.backgroundmusic.play(false);
                     document.getElementById('pauseMenu').className = "pauseShow";
                 } else {
                     document.getElementById('pauseMenu').className = "loaderHidden";
@@ -879,6 +898,32 @@ class Main {
 
         //create cameras
         this._camera = new THREE.PerspectiveCamera(fov, this._aspect, near, far);
+
+        listener = new THREE.AudioListener();
+
+
+        this._camera.add(listener);
+
+        const audioLoader = new THREE.AudioLoader();
+
+        backgroundMusic = new THREE.Audio(listener);
+
+        audioLoader.load('../resources/sounds/background.mp3', function (buffer) {
+            backgroundMusic.setBuffer(buffer);
+            backgroundMusic.setLoop(true);
+            backgroundMusic.setVolume(0.01);
+            backgroundMusic.play();
+        });
+
+        backgroundTheme = new THREE.Audio(listener);
+
+        audioLoader.load('../resources/sounds/horror_theme.mp3', function (buffer) {
+            backgroundTheme.setBuffer(buffer);
+            backgroundTheme.setLoop(true);
+            backgroundTheme.setVolume(1.2);
+            backgroundTheme.play();
+        });
+
 
         //adjust minimap scale
         let viewSize = 140;
@@ -1403,6 +1448,14 @@ class Main {
 
     _Step(timeElapsed) {
         if (!paused) {
+            if (backgroundTheme && adversaryMusic) {
+                if (!backgroundTheme.isPlaying) {
+                    backgroundTheme.play();
+                }
+                if (!adversaryMusic.isPlaying) {
+                    adversaryMusic.play();
+                }
+            }
             this._platform.children[3].rotation.y += 0.05;
             let currTimer = timerTag.innerHTML;
             //need to stop the clock
@@ -1435,6 +1488,9 @@ class Main {
             } else {
                 this._thirdPersonCamera.Update(timeElapsedS);
             }
+        } else {
+            backgroundTheme.pause();
+            adversaryMusic.pause();
         }
     }
 }
