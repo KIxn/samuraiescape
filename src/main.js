@@ -9,6 +9,8 @@ import Orb from './orb.js';
 let peekView = false;
 let Target = null; //Target.getTarget().Position will return position of kangin
 let AvailableControls = null;
+let level;
+let path;
 let panning = false;
 let pos = null;
 let Cam = null;
@@ -947,7 +949,8 @@ class Main {
 
         //testing out environment compatability for 3 dimensional playability
 
-
+        path = window.location.pathname;
+        level = path.split("/").pop().charAt(5);
         this._loadEnvironment();
         this._loadSolution();
         this._mixers = [];
@@ -956,9 +959,8 @@ class Main {
 
 
         //Draw platform (goal of maze) with difference coloured gems
-        var path = window.location.pathname;
-        var level = path.split("/").pop().charAt(5);
-        this._platform = this._DrawPlatForm(level);
+
+        this._platform = this._DrawPlatForm();
         if (level === '1') {
             this._platform.position.set(-25.826967788871027, 0, 626.0965432774168);
         } else if (level == '2') {
@@ -1102,7 +1104,7 @@ class Main {
         });
     }
 
-    _DrawPlatForm(level) {
+    _DrawPlatForm() {
         let col;
         if (level == '1') {
             col = 0x0000ff;
@@ -1177,8 +1179,7 @@ class Main {
         const loader = new FBXLoader();
 
         //
-        var path = window.location.pathname;
-        var level = path.split("/").pop().charAt(5);
+
         // console.log(page);
 
         if (level === '1') {
@@ -1209,8 +1210,7 @@ class Main {
         const game = this;
         const loader = new FBXLoader();
 
-        var path = window.location.pathname;
-        var level = path.split("/").pop().charAt(5);
+
         // console.log(page);
         if (level === '1') {
             //no sulution
@@ -1381,7 +1381,7 @@ class Main {
             if (this._CheckWin(currTimer, 3)) {
                 console.log("time taken ", this._CalculateTimeTake(currTimer, 3));
                 document.getElementById("prompt").className = "interactPrompt";
-                // not sure how to call the F prompt @kian
+
                 document.getElementById("endLevel").className = "endLevel";
             }
             const timeElapsedS = timeElapsed;
