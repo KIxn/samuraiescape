@@ -50,7 +50,7 @@ function Distance(x1, z1, x2, z2) {
  */
 function creatHUD() {
     let script = document.createElement("script");
-    script.onload = function () {
+    script.onload = function() {
         let stats = new Stats();
         document.body.appendChild(stats.dom);
         requestAnimationFrame(function loop() {
@@ -62,7 +62,9 @@ function creatHUD() {
     document.head.appendChild(script);
 }
 
-//Intermediary for animating a character
+/**
+ * Intermediary class for animating a character
+ */
 class BasicCharacterControllerProxy {
     constructor(animations) {
         this._animations = animations;
@@ -72,8 +74,9 @@ class BasicCharacterControllerProxy {
         return this._animations;
     }
 };
-
-//Mechanics to control the adversary character
+/**
+ * Class to control adversary character
+ */
 class Adversary {
     constructor(scene) {
         this._scene = scene;
@@ -98,7 +101,7 @@ class Adversary {
             this._scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = async () => {
+            this._manager.onLoad = async() => {
                 console.log('done loading');
                 await new Promise(r => setTimeout(r, 2000));
                 document.getElementById('loadingScreen').className = 'loaderHidden';
@@ -125,12 +128,12 @@ class Adversary {
                         }
                     }
                 }, 1000);
-                (level === '3') ? this.setRun() : this.setCrawl();
+                (level === '3') ? this.setRun(): this.setCrawl();
                 //positional
                 let tmp = new THREE.PositionalAudio(listener);
                 const audioLoader = new THREE.AudioLoader();
 
-                audioLoader.load('../resources/sounds/monster_growl.mp3', function (buffer) {
+                audioLoader.load('../resources/sounds/monster_growl.mp3', function(buffer) {
                     adversaryMusic = tmp;
                     adversaryMusic.setBuffer(buffer);
                     adversaryMusic.setLoop(true);
@@ -164,6 +167,9 @@ class Adversary {
         });
     };
 
+    /**
+     * Setting animations
+     */
     setIdle() {
         if (this._animations['crawlRun']) {
             const idleAction = this._animations['idle'].action;
@@ -185,6 +191,9 @@ class Adversary {
         }
     }
 
+    /**
+     * update the position of the npc (Demon)
+     */
     Update(delta) {
         if (this._mixer && this._target) {
             this._mixer.update(delta);
@@ -193,8 +202,7 @@ class Adversary {
                 let lag = 0.6;
                 if (level === '2') {
                     lag = 0.8;
-                }
-                else if (level === '3') {
+                } else if (level === '3') {
                     lag = 0.9;
                 }
                 let num = (this._target.position.dot(Target.Position));
@@ -203,9 +211,7 @@ class Adversary {
                 if (den === 0) {
                     theta = 0;
                 }
-                //this._target.rotateY(theta);
                 this._target.lookAt(Target.Position);
-                // this._target.updateMatrix();
                 this._target.translateZ(1 * lag);
 
                 if (this._target.position.distanceTo(Target.Position) <= 13) {
@@ -215,39 +221,12 @@ class Adversary {
                 }
             }
 
-            // //TODO scan for kangin, and move accordingly
-            // let intersect;
-            // search.forEach((direction) => {
-            //     //set raycaster to look int particlar direction
-            //     this._raycaster.set(this._target.position, direction, 0, 50);
-
-            //     const intersects = this._raycaster.intersectObjects(this._scene.children, false);
-
-            //     try {
-            //         if (intersects.length > 0) {
-            //             if (intersects[0].object.position.equals(Target.Position)) {
-            //                 //let intersect = intersects[0];
-            //                 let num = (this._target.position.dot(direction));
-            //                 let den = (this._target.position.length() * direction.length());
-            //                 let theta = Math.acos(num / den)
-            //                 if (den === 0) {
-            //                     theta = 0;
-            //                 }
-            //                 this._target.rotateY(theta);
-            //                 // if (theta) {
-            //                 //     console.log(theta);
-            //                 //     this._tareget.rotateY(theta);
-            //                 // }
-            //                 throw 'Break';
-            //             }
-            //         }
-            //     } catch (error) {
-            //         if (error !== 'Break') throw error;
-            //     }
-            // });
         }
     }
 
+    /**
+     * returns reference to the npc
+     */
     getTarget() {
         if (this._target) {
             const controlObject = this._target;
@@ -255,7 +234,9 @@ class Adversary {
         }
     }
 }
-//Mechanics behind using a character
+/**
+ * class defining the Mechanics of the main character
+ */
 class Character {
     constructor(params) {
         this._Init(params);
@@ -277,12 +258,14 @@ class Character {
     }
 
     getTarget() {
-        if (this._target) {
-            const controlObject = this._target;
-            return (controlObject);
+            if (this._target) {
+                const controlObject = this._target;
+                return (controlObject);
+            }
         }
-    }
-
+        /**
+         * Loads animated character to the scene
+         */
     _LoadModels() {
         const loader = new FBXLoader();
         loader.setPath('../resources/kangin_lee/');
@@ -321,6 +304,10 @@ class Character {
 
     }
 
+    /**
+     * returns current position of main character
+     * @returns {vector} current position of target as a vector
+     */
     get Position() {
         return this._position;
     }
@@ -412,7 +399,10 @@ class Character {
     }
 };
 
-//The input handler for characters movement
+/**
+ * Class input handler for characters movement
+ */
+
 class BasicCharacterControllerInput {
     constructor() {
         this._Init();
@@ -457,7 +447,7 @@ class BasicCharacterControllerInput {
                 this._keys.left = true;
                 break;
             case 83: // s
-                this._keys.backward = true; //disabled for now
+                this._keys.backward = true;
                 if (this._keys.shift) {
                     this._keys.shift = false;
                 }
@@ -526,7 +516,9 @@ class BasicCharacterControllerInput {
     }
 };
 
-//Interface class for state machine to keep track of the character's movements
+/**
+ * Interface class for state machine to keep track of the character's movements
+ */
 class FiniteStateMachine {
     constructor() {
         this._states = {};
@@ -560,7 +552,9 @@ class FiniteStateMachine {
     }
 };
 
-//Implementation of the finite state machine class for character movement
+/**
+ * Implementation of the finite state machine class for character movement
+ */
 class CharacterFSM extends FiniteStateMachine {
     constructor(proxy) {
         super();
@@ -576,18 +570,22 @@ class CharacterFSM extends FiniteStateMachine {
     }
 };
 
-//Interface that defines methods for each movement state
+
+/**
+ * Interface  that defines methods for each movement state
+ */
 class State {
     constructor(parent) {
         this._parent = parent;
     }
 
-    Enter() { }
-    Exit() { }
-    Update() { }
+    Enter() {}
+    Exit() {}
+    Update() {}
 };
-
-//States defining characters movement
+/**
+ * States defining characters movement
+ */
 
 class AttackState extends State {
     constructor(parent) {
@@ -635,7 +633,7 @@ class AttackState extends State {
         this._Cleanup();
     }
 
-    Update(_) { }
+    Update(_) {}
 };
 
 
@@ -671,7 +669,7 @@ class WalkState extends State {
         }
     }
 
-    Exit() { }
+    Exit() {}
 
     Update(timeElapsed, input) {
 
@@ -718,7 +716,7 @@ class RunState extends State {
         }
     }
 
-    Exit() { }
+    Exit() {}
 
     Update(timeElapsed, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -757,7 +755,7 @@ class IdleState extends State {
         }
     }
 
-    Exit() { }
+    Exit() {}
 
     Update(_, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -769,7 +767,11 @@ class IdleState extends State {
     }
 };
 
-//Implementation of a close following camera for our main character
+
+/**
+ * Implementation of a close following camera for our main character
+ */
+
 class ThirdPersonCamera {
     constructor(params) {
         this._params = params;
@@ -796,20 +798,19 @@ class ThirdPersonCamera {
     Update(timeElapsed) {
         const idealOffset = this._CalculateIdealOffset();
         const idealLookat = this._CalculateIdealLookat();
-
-        // const t = 0.05;
-        // const t = 4.0 * timeElapsed;
         const t = 1.0 - Math.pow(0.001, timeElapsed);
-
         this._currentPosition.lerp(idealOffset, t);
         this._currentLookat.lerp(idealLookat, t);
-
         this._camera.position.copy(this._currentPosition);
         this._camera.lookAt(this._currentLookat);
     }
 }
 
-//Far camera with orbit controls
+
+/**
+ * Far camera with orbit controls
+ */
+
 class PerspectiveCamera {
     constructor(params, controls) {
         this._params = params;
@@ -908,7 +909,8 @@ class Main {
 
         backgroundMusic = new THREE.Audio(listener);
 
-        audioLoader.load('../resources/sounds/background.mp3', function (buffer) {
+        //added audio here
+        audioLoader.load('../resources/sounds/background.mp3', function(buffer) {
             backgroundMusic.setBuffer(buffer);
             backgroundMusic.setLoop(true);
             backgroundMusic.setVolume(0.01);
@@ -917,14 +919,14 @@ class Main {
 
         backgroundTheme = new THREE.Audio(listener);
 
-        audioLoader.load('../resources/sounds/horror_theme.mp3', function (buffer) {
+        audioLoader.load('../resources/sounds/horror_theme.mp3', function(buffer) {
             backgroundTheme.setBuffer(buffer);
             backgroundTheme.setLoop(true);
             backgroundTheme.setVolume(1.2);
             backgroundTheme.play();
         });
 
-
+        //added mini map here
         //adjust minimap scale
         let viewSize = 140;
         this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
@@ -943,11 +945,14 @@ class Main {
         this._scene = new THREE.Scene();
         this._scene.add(this._camera);
 
+        //antialiasing done here
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
+        //added ambient light here
         light = new THREE.AmbientLight(0xFFFFFF, 0.5);
         this._scene.add(light);
 
+        //added directional light here
         light = new THREE.DirectionalLight(0xFFFFFF, 1.5);
         light.position.set(-100, 200, 300);
         light.target.position.set(0, 0, 0);
@@ -967,6 +972,7 @@ class Main {
         this._scene.add(light);
 
 
+        //Setting up dynamic skybox
         const loader = new THREE.CubeTextureLoader();
         const texture = loader.load([
             '../resources/skybox1/skybox_left.png',
@@ -982,7 +988,7 @@ class Main {
         this.skybox = new THREE.Mesh(geometry, material);
         this._scene.add(this.skybox);
 
-        //plane
+        //setting up the plane
         const textureLoader = new THREE.TextureLoader();
         const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_basecolor.jpg");
         const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_normal.jpg");
@@ -1032,24 +1038,8 @@ class Main {
         this._LoadAnimatedModel(controls);
         this._RAF();
     }
-    _CreateCentreCube() {
-        const Cube_Loader = new THREE.TextureLoader();
-        //load texture
-        const Cube_text = Cube_Loader.load("../resources/black_marble.jpg");
-        const c = new THREE.BoxGeometry(20, 20, 20);
-        //set the material
-        const material = new THREE.MeshBasicMaterial({ map: Cube_text });
-        //create a mesh
-        const cube = new THREE.Mesh(c, material);
-        cube.rotateY(Math.PI / 2);
-        //set position
-        cube.position.set(0, 15, 0);
-        return cube;
-    }
 
     _generateMaterialsArray(urls = []) {
-        //const maxAnisotropy = this._renderer.getMaxAnisotropy();
-
         return urls.map((url) => {
             const texture = new THREE.TextureLoader().load(url);
             texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
@@ -1060,11 +1050,15 @@ class Main {
                 fog: false,
                 depthWrite: false,
             };
-
             return new THREE.MeshBasicMaterial(props);
         });
     }
 
+    /**
+     * gets the paths of the images to be loaded onto our skybox geometries
+     * @param {string} ident
+     * @returns {Array} array containing all the file paths of the skybox images
+     */
     _getTexturesPaths(ident = 'skybox', refraction = true) {
         const basePath = `/resources/skybox1/${ident}`;
         const ext = '.png';
@@ -1075,6 +1069,11 @@ class Main {
         });
     }
 
+    /**
+     * Calculate age
+     * @param {raycaster} raycaster ray calcuated in a particular direction
+     * @returns {boolean} whether or not there is an object in the way of the main character
+     */
     _movePlayer() {
         const pos = Target.Position;
         pos.y += 60;
@@ -1102,6 +1101,12 @@ class Main {
             }
         }
     }
+
+    /**
+     * Check if there is an object blocking the character
+     * @param {raycaster} raycaster ray calcuated in a particular direction
+     * @returns {boolean} whether or not there is an object in the way of the main character
+     */
 
     _CheckBlocked(raycaster) {
         let blocked = false;
@@ -1163,6 +1168,9 @@ class Main {
         });
     }
 
+    /**
+     * Hierarchial Modelling for creating the end goal (pillar with gemstone attached)
+     */
     _DrawPlatForm() {
         let col;
         if (level == '1') {
@@ -1233,6 +1241,10 @@ class Main {
 
     }
 
+    /**
+     * Loads the maze for the various levels
+     */
+
     _loadEnvironment() {
         const game = this;
         const loader = new FBXLoader();
@@ -1242,21 +1254,23 @@ class Main {
         // console.log(page);
 
         if (level === '1') {
-            loader.load('../resources/mazes/lvl1_maze.fbx', function (object) {
+            loader.load('../resources/mazes/lvl1_maze.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
+
                 game.environmentProxy = object;
             }, null, this.onError);
         } else if (level === '2') {
-            loader.load('../resources/mazes/lvl2_maze.fbx', function (object) {
+            loader.load('../resources/mazes/lvl2_maze.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
+                console.log(object);
                 object.name = "Environment";
                 game.environmentProxy = object;
             }, null, this.onError);
         } else {
-            loader.load('../resources/mazes/lvl3_maze.fbx', function (object) {
+            loader.load('../resources/mazes/lvl3_maze.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
@@ -1265,55 +1279,53 @@ class Main {
         }
     }
 
+    /**
+     * Loads the solution of each maze to help the player out
+     */
     _loadSolution() {
-        const game = this;
-        const loader = new FBXLoader();
+            const game = this;
+            const loader = new FBXLoader();
+            if (level === '1') {
+                //no sulution
+            } else if (level === '2') {
+                loader.load('../resources/mazes/lvl2_solution.fbx', function(object) {
+                    solution = object;
+                    object.translateY(-12);
+                    game._scene.add(object);
+                    object.receiveShadow = true;
+                    object.name = "Environment";
+                    game.environmentProxy = object;
+                    //flash solution
+                    setInterval(() => {
+                        solution.visible = true;
+                    }, 5000);
+                    setInterval(() => {
+                        solution.visible = false;
+                    }, 3000);
+                }, null, this.onError);
+            } else {
+                loader.load('../resources/mazes/lvl3_solution.fbx', function(object) {
+                    solution = object;
+                    object.translateY(-12);
+                    game._scene.add(object);
+                    object.receiveShadow = true;
+                    object.name = "Environment";
+                    game.environmentProxy = object;
+                    //flash solution
+                    setInterval(() => {
+                        solution.visible = true;
+                    }, 5000);
+                    setInterval(() => {
+                        solution.visible = false;
+                    }, 3000);
+                }, null, this.onError);
+            }
 
 
-        // console.log(page);
-        if (level === '1') {
-            //no sulution
-        } else if (level === '2') {
-            loader.load('../resources/mazes/lvl2_solution.fbx', function (object) {
-                solution = object;
-                object.translateY(-12);
-                game._scene.add(object);
-                object.receiveShadow = true;
-                object.name = "Environment";
-                game.environmentProxy = object;
-                //flash solution
-                setInterval(() => {
-                    solution.visible = true;
-                }, 5000);
-                setInterval(() => {
-                    solution.visible = false;
-                }, 3000);
-            }, null, this.onError);
-        } else {
-            loader.load('../resources/mazes/lvl3_solution.fbx', function (object) {
-                solution = object;
-                object.translateY(-12);
-                game._scene.add(object);
-                object.receiveShadow = true;
-                object.name = "Environment";
-                game.environmentProxy = object;
-                //flash solution
-                setInterval(() => {
-                    solution.visible = true;
-                }, 5000);
-                setInterval(() => {
-                    solution.visible = false;
-                }, 3000);
-            }, null, this.onError);
         }
-
-
-    }
-
-    _showSolution() {
-
-    }
-
+        /**
+         * Hides the maze solution from the player
+         */
     _hideSolution() {
         if (solution) {
             solution.visible = false;
@@ -1405,6 +1417,13 @@ class Main {
         });
     }
 
+    /**
+     * Calculate age
+     * @param {number} currTimer current time left when user finishes level
+     * @param {number} lvlMins number of minutes taken to complete level
+     * @returns {string} the time taken for the player to complete the maze
+     */
+
     _CalculateTimeTake(currTimer, lvlMins) {
         let tot = lvlMins * 60;
         let strTime = currTimer.split(":");
@@ -1428,24 +1447,33 @@ class Main {
         }
     }
 
-    _CheckWin(currTimer) {
-        let cx = this._platform.position.x;
-        let cy = 0;
-        let cz = this._platform.position.z;
-        let tx = Target.Position.x;
-        let ty = 0;
-        let tz = Target.Position.z;
 
-        let dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2) + Math.pow(cz - tz, 2));
-        if ((dist) < 15) { //targets distane from the box
-            AvailableControls.forward = false;
-            return true;
-        } else {
-            //AvailableControls.forward= true;
-            return false;
+    /**
+     * Checks whether our main character is in the vicinity of the gemstone
+     * @returns {boolean} whether or not the character has won
+     */
+
+    _CheckWin() {
+            let cx = this._platform.position.x;
+            let cy = 0;
+            let cz = this._platform.position.z;
+            let tx = Target.Position.x;
+            let ty = 0;
+            let tz = Target.Position.z;
+
+            let dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2) + Math.pow(cz - tz, 2));
+            if ((dist) < 15) { //targets distane from the box
+                AvailableControls.forward = false;
+                return true;
+            } else {
+                //AvailableControls.forward= true;
+                return false;
+            }
         }
-    }
-
+        /**
+         * Renders the current state of the game
+         * @param {number} timeElapsed the number of seconds that the game has been running for
+         */
     _Step(timeElapsed) {
         if (!paused) {
             if (backgroundTheme && adversaryMusic) {
@@ -1459,11 +1487,10 @@ class Main {
             this._platform.children[3].rotation.y += 0.05;
             let currTimer = timerTag.innerHTML;
             //need to stop the clock
-            interact = this._CheckWin(currTimer, 3);
+            interact = this._CheckWin();
             if (interact) {
                 document.getElementById('prompt').className = 'interactPrompt';
-            }
-            else {
+            } else {
                 document.getElementById('prompt').className = 'loaderHidden';
             }
 

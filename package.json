@@ -1,14 +1,17 @@
 {
-  "name": "samuraiescape",
-  "private": true,
-  "version": "0.0.0",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "stats.js": "^0.17.0",
-    "vite": "^2.9.9"
-  }
+    "name": "samuraiescape",
+    "private": true,
+    "version": "0.0.0",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "docs": "./node_modules/.bin/jsdoc -c jsdoc.json"
+    },
+    "devDependencies": {
+        "jsdoc": "^3.6.10",
+        "jsdocs": "^1.0.0",
+        "stats.js": "^0.17.0",
+        "vite": "^2.9.9"
+    }
 }
