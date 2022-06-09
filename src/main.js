@@ -85,7 +85,7 @@ class Adversary {
             });
 
             this._target = fbx;
-            this._target.translateZ(-30);
+            this._target.translateZ(-150);
             this._scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
@@ -168,36 +168,56 @@ class Adversary {
         if (this._mixer && this._target) {
             this._mixer.update(delta);
 
-            //TODO scan for kangin, and move accordingly
-            let intersect;
-            search.forEach((direction) => {
-                //set raycaster to look int particlar direction
-                this._raycaster.set(this._target.position, direction, 0, 50);
-
-                const intersects = this._raycaster.intersectObjects(this._scene.children, false);
-
-                try {
-                    if (intersects.length > 0) {
-                        if (intersects[0].object.position.equals(Target.Position)) {
-                            //let intersect = intersects[0];
-                            let num = (this._target.position.dot(direction));
-                            let den = (this._target.position.length() * direction.length());
-                            let theta = Math.acos(num / den)
-                            if (den === 0) {
-                                theta = 0;
-                            }
-                            this._target.rotateY(theta);
-                            // if (theta) {
-                            //     console.log(theta);
-                            //     this._tareget.rotateY(theta);
-                            // }
-                            throw 'Break';
-                        }
-                    }
-                } catch (error) {
-                    if (error !== 'Break') throw error;
+            if (Target) {
+                let lag = 0.2;
+                let num = (this._target.position.dot(Target.Position));
+                let den = (this._target.position.length() * Target.Position.length());
+                let theta = Math.acos(num / den);
+                if (den === 0) {
+                    theta = 0;
                 }
-            });
+                //this._target.rotateY(theta);
+                this._target.lookAt(Target.Position);
+                // this._target.updateMatrix();
+                this._target.translateZ(1 * lag);
+
+                if (this._target.position.distanceTo(Target.Position) <= 13) {
+                    paused = true;
+                    timerTag.className = "loaderHidden";
+                    document.getElementById("gameOver").className = "endGame";
+                }
+            }
+
+            // //TODO scan for kangin, and move accordingly
+            // let intersect;
+            // search.forEach((direction) => {
+            //     //set raycaster to look int particlar direction
+            //     this._raycaster.set(this._target.position, direction, 0, 50);
+
+            //     const intersects = this._raycaster.intersectObjects(this._scene.children, false);
+
+            //     try {
+            //         if (intersects.length > 0) {
+            //             if (intersects[0].object.position.equals(Target.Position)) {
+            //                 //let intersect = intersects[0];
+            //                 let num = (this._target.position.dot(direction));
+            //                 let den = (this._target.position.length() * direction.length());
+            //                 let theta = Math.acos(num / den)
+            //                 if (den === 0) {
+            //                     theta = 0;
+            //                 }
+            //                 this._target.rotateY(theta);
+            //                 // if (theta) {
+            //                 //     console.log(theta);
+            //                 //     this._tareget.rotateY(theta);
+            //                 // }
+            //                 throw 'Break';
+            //             }
+            //         }
+            //     } catch (error) {
+            //         if (error !== 'Break') throw error;
+            //     }
+            // });
         }
     }
 
