@@ -1,0 +1,54 @@
+canvas {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -9999;
+}
+
+div {
+    background-color: rgb(75 66 88 / 95%);
+    color: azure;
+    text-align: center;
+    margin: 50px;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.controls {}
+
+.controlItem {
+    display: flex;
+    flex-flow: row;
+    justify-content: space-between;
+    text-align: center;
+}
+
+.desc {
+    margin-right: 80px;
+    text-align: center;
+}
+
+.keys {
+    margin-left: 80px;
+}
+
+.creds {
+    text-align: center;
+    display: flex;
+    flex-flow: row;
+    justify-content: space-around;
+}
+
+a {
+    color: azure;
+    text-decoration: none !important;
+}
+
+a:hover {
+    color: black;
+    text-decoration: none !important;
+    cursor: pointer;
+}

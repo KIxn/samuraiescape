@@ -134,7 +134,7 @@ class Adversary {
                     adversaryMusic = tmp;
                     adversaryMusic.setBuffer(buffer);
                     adversaryMusic.setLoop(true);
-                    adversaryMusic.setRefDistance(60);
+                    adversaryMusic.setRefDistance(75);
                     adversaryMusic.setVolume(2);
                     adversaryMusic.play();
                 });
