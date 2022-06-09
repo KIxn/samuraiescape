@@ -25,6 +25,7 @@ let placeOrb = false;
 let adversary = null; // adversary.getTarget().position will return position of enemy
 let light;
 let search = [];
+let solution = null;
 
 function Distance(x1, z1, x2, z2) {
     var dist = Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((z1 - z2), 2));
@@ -1124,22 +1125,34 @@ class Main {
         }
         else if (level === '2') {
             loader.load('../resources/maze2_sol.fbx', function (object) {
+                solution = object;
                 object.translateY(-12);
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
                 game.environmentProxy = object;
+                //flash solution
+                setInterval(() => {
+                    solution.visible = !solution.visible;
+                }, 3000);
             }, null, this.onError);
         }
         else {
             loader.load('../resources/maze3_sol.fbx', function (object) {
+                solution = object;
                 object.translateY(-12);
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
                 game.environmentProxy = object;
+                //flash solution
+                setInterval(() => {
+                    solution.visible = !solution.visible;
+                }, 5000);
             }, null, this.onError);
         }
+
+
     }
 
     _OnWindowResize() {
