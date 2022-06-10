@@ -42,7 +42,7 @@ let listener;
  * @param { float } z1
  * @param { float } x2
  * @param { float } z2
- * @returns
+ * @returns {float} distance 
  */
 
 function Distance(x1, z1, x2, z2) {
@@ -61,7 +61,7 @@ function Distance(x1, z1, x2, z2) {
  */
 function creatHUD() {
     let script = document.createElement("script");
-    script.onload = function() {
+    script.onload = function () {
         let stats = new Stats();
         document.body.appendChild(stats.dom);
         requestAnimationFrame(function loop() {
@@ -73,10 +73,11 @@ function creatHUD() {
     document.head.appendChild(script);
 }
 
-/** Intermediary class for animating a character
- * @class
+/** 
+ * @namespace Proxy
  * Create BasicCharacterControllerProxy
- * @param { list } animations- a list of animations
+ * @class
+ * @classdesc Intermediary class for animating a character
  */
 class BasicCharacterControllerProxy {
 
@@ -122,7 +123,7 @@ class Adversary {
             this._scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = async() => {
+            this._manager.onLoad = async () => {
                 console.log('done loading');
                 await new Promise(r => setTimeout(r, 2000));
                 document.getElementById('loadingScreen').className = 'loaderHidden';
@@ -149,12 +150,12 @@ class Adversary {
                         }
                     }
                 }, 1000);
-                (level === '3') ? this.setRun(): this.setCrawl();
+                (level === '3') ? this.setRun() : this.setCrawl();
                 //positional
                 let tmp = new THREE.PositionalAudio(listener);
                 const audioLoader = new THREE.AudioLoader();
 
-                audioLoader.load('../resources/sounds/monster_growl.mp3', function(buffer) {
+                audioLoader.load('../resources/sounds/monster_growl.mp3', function (buffer) {
                     adversaryMusic = tmp;
                     adversaryMusic.setBuffer(buffer);
                     adversaryMusic.setLoop(true);
@@ -193,26 +194,26 @@ class Adversary {
      * @method
      */
     setIdle() {
-            if (this._animations['crawlRun']) {
-                const idleAction = this._animations['idle'].action;
-                idleAction.play();
-            }
+        if (this._animations['crawlRun']) {
+            const idleAction = this._animations['idle'].action;
+            idleAction.play();
         }
-        /**
-         * Setting Run animations
-         * @method
-         */
+    }
+    /**
+     * Setting Run animations
+     * @method
+     */
 
     setRun() {
-            if (this._animations['crawlRun']) {
-                const runAction = this._animations['run'].action;
-                runAction.play();
-            }
+        if (this._animations['crawlRun']) {
+            const runAction = this._animations['run'].action;
+            runAction.play();
         }
-        /**
-         * Seting crawl animations
-         * @method
-         */
+    }
+    /**
+     * Seting crawl animations
+     * @method
+     */
 
     setCrawl() {
         if (this._animations['crawlRun']) {
@@ -586,15 +587,15 @@ class BasicCharacterControllerInput {
 class FiniteStateMachine {
 
     constructor() {
-            this._states = {};
-            this._currentState = new IdleState(this);
-        }
-        /**
-         * Adds state to state machine
-         * @method
-         * @param {string} name - The name of the state
-         * @param {class} type - state class extending state
-         */
+        this._states = {};
+        this._currentState = new IdleState(this);
+    }
+    /**
+     * Adds state to state machine
+     * @method
+     * @param {string} name - The name of the state
+     * @param {class} type - state class extending state
+     */
     _AddState(name, type) {
         console.log(type);
         this._states[name] = type;
@@ -637,1013 +638,1013 @@ class FiniteStateMachine {
      */
     class CharacterFSM extends FiniteStateMachine {
 
-        constructor(proxy) {
-            super();
-            this._proxy = proxy;
-            this._Init();
-        }
-
-        /**
-         * add states to our characters FSM
-         * @method
-         */
-        _Init() {
-            this._AddState('idle', IdleState);
-            this._AddState('walk', WalkState);
-            this._AddState('run', RunState);
-            this._AddState('dance', AttackState);
-        }
-    };
-
+    constructor(proxy) {
+        super();
+        this._proxy = proxy;
+        this._Init();
+    }
 
     /**
-     * Interface  that defines methods for each movement state
-     * @class
-     * @constructor
-     * @param {Object} parent - instance of CharacterFSM class
+     * add states to our characters FSM
+     * @method
      */
-    class State {
+    _Init() {
+        this._AddState('idle', IdleState);
+        this._AddState('walk', WalkState);
+        this._AddState('run', RunState);
+        this._AddState('dance', AttackState);
+    }
+};
 
-        constructor(parent) {
-            this._parent = parent;
+
+/**
+ * Interface  that defines methods for each movement state
+ * @class
+ * @constructor
+ * @param {Object} parent - instance of CharacterFSM class
+ */
+class State {
+
+    constructor(parent) {
+        this._parent = parent;
+    }
+    Enter() { }
+    Exit() { }
+    Update() { }
+};
+
+/**
+ * States defining characters movement
+ * @class
+ * @constructor
+ * @param {Object} parent - instance of CharacterFSM class
+ */
+
+class AttackState extends State {
+    constructor(parent) {
+        super(parent);
+
+        this._FinishedCallback = () => {
+            this._Finished();
         }
-        Enter() {}
-        Exit() {}
-        Update() {}
-    };
+    }
 
-    /**
-     * States defining characters movement
-     * @class
-     * @constructor
-     * @param {Object} parent - instance of CharacterFSM class
-     */
+    get Name() {
+        return 'dance';
+    }
 
-    class AttackState extends State {
-        constructor(parent) {
-            super(parent);
+    Enter(prevState) {
+        const curAction = this._parent._proxy._animations['dance'].action;
+        const mixer = curAction.getMixer();
+        mixer.addEventListener('finished', this._FinishedCallback);
 
-            this._FinishedCallback = () => {
-                this._Finished();
-            }
+        if (prevState) {
+            const prevAction = this._parent._proxy._animations[prevState.Name].action;
+
+            curAction.reset();
+            curAction.setLoop(THREE.LoopOnce, 1);
+            curAction.clampWhenFinished = true;
+            curAction.crossFadeFrom(prevAction, 0.2, true);
+            curAction.play();
+        } else {
+            curAction.play();
         }
+    }
 
-        get Name() {
-            return 'dance';
-        }
+    _Finished() {
+        this._Cleanup();
+        this._parent.SetState('idle');
+    }
 
-        Enter(prevState) {
-            const curAction = this._parent._proxy._animations['dance'].action;
-            const mixer = curAction.getMixer();
-            mixer.addEventListener('finished', this._FinishedCallback);
+    _Cleanup() {
+        const action = this._parent._proxy._animations['dance'].action;
 
-            if (prevState) {
-                const prevAction = this._parent._proxy._animations[prevState.Name].action;
+        action.getMixer().removeEventListener('finished', this._CleanupCallback);
+    }
 
-                curAction.reset();
-                curAction.setLoop(THREE.LoopOnce, 1);
-                curAction.clampWhenFinished = true;
-                curAction.crossFadeFrom(prevAction, 0.2, true);
-                curAction.play();
+    Exit() {
+        this._Cleanup();
+    }
+
+    Update(_) { }
+};
+
+
+class WalkState extends State {
+    constructor(parent) {
+        super(parent);
+    }
+
+    get Name() {
+        return 'walk';
+    }
+
+    Enter(prevState) {
+        const curAction = this._parent._proxy._animations['walk'].action;
+        if (prevState) {
+            const prevAction = this._parent._proxy._animations[prevState.Name].action;
+
+            curAction.enabled = true;
+
+            if (prevState.Name == 'run') {
+                const ratio = curAction.getClip().duration / prevAction.getClip().duration;
+                curAction.time = prevAction.time * ratio;
             } else {
-                curAction.play();
+                curAction.time = 0.0;
+                curAction.setEffectiveTimeScale(1.3);
+                curAction.setEffectiveWeight(1.0);
             }
+
+            curAction.crossFadeFrom(prevAction, (prevAction.Name == 'walk') ? 0 : 0.5, true);
+            curAction.play();
+        } else {
+            curAction.play();
         }
+    }
 
-        _Finished() {
-            this._Cleanup();
-            this._parent.SetState('idle');
+    Exit() { }
+
+    Update(timeElapsed, input) {
+
+        if (input._keys.forward || input._keys.backward) {
+            if (input._keys.shift) {
+                this._parent.SetState('run');
+            }
+            return;
         }
-
-        _Cleanup() {
-            const action = this._parent._proxy._animations['dance'].action;
-
-            action.getMixer().removeEventListener('finished', this._CleanupCallback);
-        }
-
-        Exit() {
-            this._Cleanup();
-        }
-
-        Update(_) {}
-    };
+        this._parent.SetState('idle');
+    }
+};
 
 
-    class WalkState extends State {
-        constructor(parent) {
-            super(parent);
-        }
+class RunState extends State {
+    constructor(parent) {
+        super(parent);
+    }
 
-        get Name() {
-            return 'walk';
-        }
+    get Name() {
+        return 'run';
+    }
 
-        Enter(prevState) {
-            const curAction = this._parent._proxy._animations['walk'].action;
-            if (prevState) {
-                const prevAction = this._parent._proxy._animations[prevState.Name].action;
+    Enter(prevState) {
+        const curAction = this._parent._proxy._animations['run'].action;
+        if (prevState) {
+            const prevAction = this._parent._proxy._animations[prevState.Name].action;
 
-                curAction.enabled = true;
+            curAction.enabled = true;
 
-                if (prevState.Name == 'run') {
-                    const ratio = curAction.getClip().duration / prevAction.getClip().duration;
-                    curAction.time = prevAction.time * ratio;
-                } else {
-                    curAction.time = 0.0;
-                    curAction.setEffectiveTimeScale(1.3);
-                    curAction.setEffectiveWeight(1.0);
-                }
-
-                curAction.crossFadeFrom(prevAction, (prevAction.Name == 'walk') ? 0 : 0.5, true);
-                curAction.play();
+            if (prevState.Name == 'walk') {
+                const ratio = curAction.getClip().duration / prevAction.getClip().duration;
+                curAction.time = prevAction.time * ratio;
             } else {
-                curAction.play();
-            }
-        }
-
-        Exit() {}
-
-        Update(timeElapsed, input) {
-
-            if (input._keys.forward || input._keys.backward) {
-                if (input._keys.shift) {
-                    this._parent.SetState('run');
-                }
-                return;
-            }
-            this._parent.SetState('idle');
-        }
-    };
-
-
-    class RunState extends State {
-        constructor(parent) {
-            super(parent);
-        }
-
-        get Name() {
-            return 'run';
-        }
-
-        Enter(prevState) {
-            const curAction = this._parent._proxy._animations['run'].action;
-            if (prevState) {
-                const prevAction = this._parent._proxy._animations[prevState.Name].action;
-
-                curAction.enabled = true;
-
-                if (prevState.Name == 'walk') {
-                    const ratio = curAction.getClip().duration / prevAction.getClip().duration;
-                    curAction.time = prevAction.time * ratio;
-                } else {
-                    curAction.time = 0.0;
-                    curAction.setEffectiveTimeScale(0.1);
-                    curAction.setEffectiveWeight(1.0);
-                }
-
-                curAction.crossFadeFrom(prevAction, 0.5, true);
-                curAction.play();
-            } else {
-                curAction.play();
-            }
-        }
-
-        Exit() {}
-
-        Update(timeElapsed, input) {
-            if (input._keys.forward || input._keys.backward) {
-                if (!input._keys.shift) {
-                    this._parent.SetState('walk');
-                }
-                return;
+                curAction.time = 0.0;
+                curAction.setEffectiveTimeScale(0.1);
+                curAction.setEffectiveWeight(1.0);
             }
 
-            this._parent.SetState('idle');
+            curAction.crossFadeFrom(prevAction, 0.5, true);
+            curAction.play();
+        } else {
+            curAction.play();
         }
-    };
+    }
 
-    /**
-     * creates an idle state of the character
-     * @class
-     * @constructor
-     * @param {Object} parent - instance of CharacterFSM class
-     */
-    class IdleState extends State {
-        constructor(parent) {
-            super(parent);
-        }
+    Exit() { }
 
-        get Name() {
-            return 'idle';
-        }
-
-        Enter(prevState) {
-            const idleAction = this._parent._proxy._animations['idle'].action;
-            if (prevState) {
-                const prevAction = this._parent._proxy._animations[prevState.Name].action;
-                idleAction.time = 0.0;
-                idleAction.enabled = true;
-                idleAction.setEffectiveTimeScale(0.8);
-                idleAction.setEffectiveWeight(1.0);
-                idleAction.crossFadeFrom(prevAction, 0.5, true);
-                idleAction.play();
-            } else {
-                idleAction.play();
-            }
-        }
-
-        Exit() {}
-
-        Update(_, input) {
-            if (input._keys.forward || input._keys.backward) {
+    Update(timeElapsed, input) {
+        if (input._keys.forward || input._keys.backward) {
+            if (!input._keys.shift) {
                 this._parent.SetState('walk');
-
-            } else if (input._keys.space) {
-                this._parent.SetState('dance');
             }
-        }
-    };
-
-
-    /**
-     * Implementation of a close following camera for our main character
-     * @class
-     * @constructor
-     * @param {THREE.Scene} params - returns the camera and the scene
-     */
-
-    class ThirdPersonCamera {
-        constructor(params) {
-            this._params = params;
-            this._camera = params.camera;
-
-            this._currentPosition = new THREE.Vector3();
-            this._currentLookat = new THREE.Vector3();
+            return;
         }
 
-        _CalculateIdealOffset() {
-            const idealOffset = new THREE.Vector3(-15, 20, -30);
-            idealOffset.applyQuaternion(this._params.target.Rotation);
-            idealOffset.add(this._params.target.Position);
-            return idealOffset;
-        }
+        this._parent.SetState('idle');
+    }
+};
 
-        _CalculateIdealLookat() {
-            const idealLookat = new THREE.Vector3(0, 10, 50);
-            idealLookat.applyQuaternion(this._params.target.Rotation);
-            idealLookat.add(this._params.target.Position);
-            return idealLookat;
-        }
+/**
+ * creates an idle state of the character
+ * @class
+ * @constructor
+ * @param {Object} parent - instance of CharacterFSM class
+ */
+class IdleState extends State {
+    constructor(parent) {
+        super(parent);
+    }
 
-        Update(timeElapsed) {
+    get Name() {
+        return 'idle';
+    }
+
+    Enter(prevState) {
+        const idleAction = this._parent._proxy._animations['idle'].action;
+        if (prevState) {
+            const prevAction = this._parent._proxy._animations[prevState.Name].action;
+            idleAction.time = 0.0;
+            idleAction.enabled = true;
+            idleAction.setEffectiveTimeScale(0.8);
+            idleAction.setEffectiveWeight(1.0);
+            idleAction.crossFadeFrom(prevAction, 0.5, true);
+            idleAction.play();
+        } else {
+            idleAction.play();
+        }
+    }
+
+    Exit() { }
+
+    Update(_, input) {
+        if (input._keys.forward || input._keys.backward) {
+            this._parent.SetState('walk');
+
+        } else if (input._keys.space) {
+            this._parent.SetState('dance');
+        }
+    }
+};
+
+
+/**
+ * Implementation of a close following camera for our main character
+ * @class
+ * @constructor
+ * @param {THREE.Scene} params - returns the camera and the scene
+ */
+
+class ThirdPersonCamera {
+    constructor(params) {
+        this._params = params;
+        this._camera = params.camera;
+
+        this._currentPosition = new THREE.Vector3();
+        this._currentLookat = new THREE.Vector3();
+    }
+
+    _CalculateIdealOffset() {
+        const idealOffset = new THREE.Vector3(-15, 20, -30);
+        idealOffset.applyQuaternion(this._params.target.Rotation);
+        idealOffset.add(this._params.target.Position);
+        return idealOffset;
+    }
+
+    _CalculateIdealLookat() {
+        const idealLookat = new THREE.Vector3(0, 10, 50);
+        idealLookat.applyQuaternion(this._params.target.Rotation);
+        idealLookat.add(this._params.target.Position);
+        return idealLookat;
+    }
+
+    Update(timeElapsed) {
+        const idealOffset = this._CalculateIdealOffset();
+        const idealLookat = this._CalculateIdealLookat();
+        const t = 1.0 - Math.pow(0.001, timeElapsed);
+        this._currentPosition.lerp(idealOffset, t);
+        this._currentLookat.lerp(idealLookat, t);
+        this._camera.position.copy(this._currentPosition);
+        this._camera.lookAt(this._currentLookat);
+    }
+}
+
+
+/**
+ * Far camera with orbit controls
+ * @class
+ * @constructor
+ * @param {THREE.Scene} params - returns the camera and the scene
+ * @param {Object}controls - allows us to perform camera movement
+ */
+
+class PerspectiveCamera {
+    constructor(params, controls) {
+        this._params = params;
+        this._camera = params.camera;
+        this._controls = controls;
+
+        this._currentPosition = new THREE.Vector3();
+        this._currentLookat = new THREE.Vector3();
+    }
+
+    _CalculateIdealOffset() {
+        const idealOffset = new THREE.Vector3(-15, 50, -60);
+        idealOffset.applyQuaternion(this._params.target.Rotation);
+        idealOffset.add(this._params.target.Position);
+        return idealOffset;
+    }
+
+    _CalculateIdealLookat() {
+        const idealLookat = new THREE.Vector3(0, 10, 50);
+        idealLookat.applyQuaternion(this._params.target.Rotation);
+        idealLookat.add(this._params.target.Position);
+        return idealLookat;
+    }
+
+    Update(timeElapsed) {
+        if (!panning) {
             const idealOffset = this._CalculateIdealOffset();
             const idealLookat = this._CalculateIdealLookat();
+
             const t = 1.0 - Math.pow(0.001, timeElapsed);
+
             this._currentPosition.lerp(idealOffset, t);
             this._currentLookat.lerp(idealLookat, t);
+
             this._camera.position.copy(this._currentPosition);
             this._camera.lookAt(this._currentLookat);
+        } else {
+            this._controls.update();
         }
     }
 
 
+}
+
+/**
+ * Main class that loads set ups and updates each each level as timeElapsed increases
+ * @class
+ * @constructor
+ */
+class Main {
     /**
-     * Far camera with orbit controls
-     * @class
-     * @constructor
-     * @param {THREE.Scene} params - returns the camera and the scene
-     * @param {Object}controls - allows us to perform camera movement
+     * calls our initialize function to set uo our scene
      */
-
-    class PerspectiveCamera {
-        constructor(params, controls) {
-            this._params = params;
-            this._camera = params.camera;
-            this._controls = controls;
-
-            this._currentPosition = new THREE.Vector3();
-            this._currentLookat = new THREE.Vector3();
-        }
-
-        _CalculateIdealOffset() {
-            const idealOffset = new THREE.Vector3(-15, 50, -60);
-            idealOffset.applyQuaternion(this._params.target.Rotation);
-            idealOffset.add(this._params.target.Position);
-            return idealOffset;
-        }
-
-        _CalculateIdealLookat() {
-            const idealLookat = new THREE.Vector3(0, 10, 50);
-            idealLookat.applyQuaternion(this._params.target.Rotation);
-            idealLookat.add(this._params.target.Position);
-            return idealLookat;
-        }
-
-        Update(timeElapsed) {
-            if (!panning) {
-                const idealOffset = this._CalculateIdealOffset();
-                const idealLookat = this._CalculateIdealLookat();
-
-                const t = 1.0 - Math.pow(0.001, timeElapsed);
-
-                this._currentPosition.lerp(idealOffset, t);
-                this._currentLookat.lerp(idealLookat, t);
-
-                this._camera.position.copy(this._currentPosition);
-                this._camera.lookAt(this._currentLookat);
-            } else {
-                this._controls.update();
-            }
-        }
-
-
+    constructor() {
+        this._Initialize();
     }
 
     /**
-     * Main class that loads set ups and updates each each level as timeElapsed increases
-     * @class
-     * @constructor
+     * Sets up our scene
      */
-    class Main {
-        /**
-         * calls our initialize function to set uo our scene
-         */
-        constructor() {
-            this._Initialize();
+    _Initialize() {
+        //stats
+        creatHUD();
+
+        //get search directions
+        for (let i = 0; i < 360; i += 3) {
+            search[i] = new THREE.Vector3(Math.cos(i), 0, Math.sin(i));
         }
 
-        /**
-         * Sets up our scene
-         */
-        _Initialize() {
-            //stats
-            creatHUD();
+        //necessary objects from dom tree
+        timerTag = document.getElementById("timer");
 
-            //get search directions
-            for (let i = 0; i < 360; i += 3) {
-                search[i] = new THREE.Vector3(Math.cos(i), 0, Math.sin(i));
+        this._threejs = new THREE.WebGLRenderer({
+            antialias: true,
+        });
+        this._threejs.outputEncoding = THREE.sRGBEncoding;
+        this._threejs.shadowMap.enabled = true;
+        this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
+        this._threejs.setPixelRatio(window.devicePixelRatio);
+        this._threejs.setSize(window.innerWidth, window.innerHeight);
+        this._insetWidth = window.innerHeight / 4;
+        this._insetHeight = window.innerHeight / 4;
+
+        document.body.appendChild(this._threejs.domElement);
+
+        window.addEventListener('resize', () => {
+            this._OnWindowResize();
+        }, false);
+        const fov = 60;
+        this._aspect = 1920 / 1080;
+        const near = 2.0;
+        const far = 1000.0;
+
+        //create cameras
+        this._camera = new THREE.PerspectiveCamera(fov, this._aspect, near, far);
+
+        listener = new THREE.AudioListener();
+
+
+        this._camera.add(listener);
+
+        const audioLoader = new THREE.AudioLoader();
+
+        backgroundTheme = new THREE.Audio(listener);
+
+        audioLoader.load('../resources/sounds/horror_theme.mp3', function (buffer) {
+            backgroundTheme.setBuffer(buffer);
+            backgroundTheme.setLoop(true);
+            backgroundTheme.setVolume(1.2);
+            backgroundTheme.play();
+        });
+
+        //added mini map here
+        //adjust minimap scale
+        let viewSize = 140;
+        this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
+        this._cameraOrtho.zoom = 100;
+        this._cameraOrtho.position.set(0, 30, 0);
+        this._cameraOrtho.up.set(0, 1, 0);
+        this._cameraOrtho.lookAt(new THREE.Vector3());
+        this._camera.add(this._cameraOrtho);
+
+        const controls = new OrbitControls(this._camera, this._threejs.domElement);
+        controls.keys = {};
+        ctrls = controls;
+
+        controls.update();
+
+        this._scene = new THREE.Scene();
+        this._scene.add(this._camera);
+
+        //antialiasing done here
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+
+        //added ambient light here
+        light = new THREE.AmbientLight(0xFFFFFF, 0.5);
+        this._scene.add(light);
+
+        //added directional light here
+        light = new THREE.DirectionalLight(0xFFFFFF, 1.5);
+        light.position.set(-100, 200, 300);
+        light.target.position.set(0, 0, 0);
+        light.castShadow = true;
+        light.shadow.bias = -0.001;
+        light.shadow.mapSize.width = 512;
+        light.shadow.mapSize.height = 512;
+        light.shadow.camera.near = 0.1;
+        light.shadow.camera.far = 500.0;
+        light.shadow.camera.near = 0.5;
+        light.shadow.camera.far = 500.0;
+        light.shadow.camera.left = 50;
+        light.shadow.camera.right = -50;
+        light.shadow.camera.top = 50;
+        light.shadow.camera.bottom = -50;
+
+        this._scene.add(light);
+
+
+        //Setting up dynamic skybox
+        const loader = new THREE.CubeTextureLoader();
+        const texture = loader.load([
+            '../resources/skybox1/skybox_left.png',
+            '../resources/skybox1/skybox_right.png',
+            '../resources/skybox1/skybox_up.png',
+            '../resources/skybox1/skybox_down.png',
+            '../resources/skybox1/skybox_front.png',
+            '../resources/skybox1/skybox_back.png',
+
+        ]);
+        const geometry = new THREE.BoxBufferGeometry(1000, 1000, 1000);
+        const material = this._generateMaterialsArray(this._getTexturesPaths('skybox'));
+        this.skybox = new THREE.Mesh(geometry, material);
+        this._scene.add(this.skybox);
+
+        //setting up the plane
+        const textureLoader = new THREE.TextureLoader();
+        const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_basecolor.jpg");
+        const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_normal.jpg");
+        const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_roughness.jpg");
+        const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_ambientOcclusion.jpg");
+        const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_height.png");
+
+        //creating the plane
+        const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(5000, 5000, 10, 10),
+            new THREE.MeshStandardMaterial({
+                map: _PlaneBaseCol,
+                normalMap: _PlaneNorm,
+                displacementMap: _PlaneHeight,
+                displacementScale: 0.05,
+                roughnessMap: _PlaneRoughness,
+                roughness: 0.5,
+                aoMap: _PlaneAmbientOcc,
+            }));
+        plane.castShadow = false;
+        plane.receiveShadow = true;
+        plane.rotation.x = -Math.PI / 2;
+        this._scene.add(plane);
+
+        //testing out environment compatability for 3 dimensional playability
+
+        path = window.location.pathname;
+        level = path.split("/").pop().charAt(5);
+        this._loadEnvironment();
+        this._loadSolution();
+        this._mixers = [];
+        this._preveiousRAF = null;
+        this._clock = new THREE.Clock();
+
+
+        //Draw platform (goal of maze) with difference coloured gems
+
+        this._platform = this._DrawPlatForm();
+        if (level === '1') {
+            this._platform.position.set(-25.826967788871027, 0, 626.0965432774168);
+        } else if (level == '2') {
+            this._platform.position.set(2.8251132620141375, 0, 722.0679682006315);
+
+        } else {
+            this._platform.position.set(-38.234280902886155, 0, 929.8273839831012);
+        }
+        this._scene.add(this._platform);
+        this._LoadAnimatedModel(controls);
+        this._RAF();
+    }
+
+
+    /**
+     * gets the paths of the images to be loaded onto our skybox geometry
+     * @method
+     * @param {string} ident common substring found in all of our image paths
+     * @returns {List} list containing all the file paths of the skybox images
+     */
+    _getTexturesPaths(ident = 'skybox', refraction = true) {
+        const basePath = `/resources/skybox1/${ident}`;
+        const ext = '.png';
+        const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
+
+        return sides.map(side => {
+            return basePath + side + ext;
+        });
+    }
+    /**
+     * gets the paths of the images to be loaded onto our skybox geometry
+     * @method
+     * @param {List} urls list containing filepaths of images
+     * @returns {THREE.MeshBasicMaterial} a three js material define using the images found in urls
+     */
+    _generateMaterialsArray(urls = []) {
+        return urls.map((url) => {
+            const texture = new THREE.TextureLoader().load(url);
+            texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+
+            const props = {
+                map: texture,
+                side: THREE.BackSide,
+                fog: false,
+                depthWrite: false,
+            };
+
+            return new THREE.MeshBasicMaterial(props);
+        });
+    }
+
+    /**
+     * Calculate age
+     * @method
+     * @param {raycaster} raycaster ray calcuated in a particular direction
+     * @returns {boolean} whether or not there is an object in the way of the main character
+     */
+    _movePlayer() {
+        const pos = Target.Position;
+        pos.y += 60;
+        let dir = new THREE.Vector3();
+        this._camera.getWorldDirection(dir);
+
+        if (this.environmentProxy != undefined) {
+            //cast in front
+            let raycaster_front = new THREE.Raycaster(pos, dir);
+            let Front_Blocked = this._CheckBlocked(raycaster_front);
+            if (Front_Blocked) {
+                AvailableControls.forward = false;
             }
+        }
 
-            //necessary objects from dom tree
-            timerTag = document.getElementById("timer");
+        if (this.environmentProxy != undefined) {
+            //cast behind
+            dir.set(0, 0, -1);
+            dir.applyMatrix4(this._camera.matrix);
+            dir.normalize();
+            let ryacaster_back = new THREE.Raycaster(pos, dir);
+            let Back_Blocked = this._CheckBlocked(ryacaster_back);
+            if (Back_Blocked) {
+                AvailableControls.backward = false;
+            }
+        }
+    }
 
-            this._threejs = new THREE.WebGLRenderer({
-                antialias: true,
+    /**
+     * Check if there is an object blocking the character
+     * @method
+     * @param {raycaster} raycaster ray calcuated in a particular direction
+     * @returns {boolean} whether or not there is an object in the way of the main character
+     */
+
+    _CheckBlocked(raycaster) {
+        let blocked = false;
+        for (let box of this.environmentProxy.children) { //environmentProxy stores all the boxes that we created in createDummyEnv
+            const intersect = raycaster.intersectObject(box);
+            if (intersect.length > 0) { //intersect is an array that stores all the boxes that is in the path of our raycaster
+                if (intersect[0].distance < DistFromBox) { //it is ordered by distance , so the closest is at pos[0] ,hence intersect[0].
+                    blocked = true; //Player should not be able to move in that direction
+                    break;
+                }
+            }
+        }
+        return blocked;
+    }
+
+    /**
+     * Creates a new character and adversary instance and sets up cameras
+     * @method
+     * @param {OrbitControls} ctrls allows us to move or drag the cameras around
+     */
+    _LoadAnimatedModel(ctrls) {
+        const params = {
+            camera: this._camera,
+            scene: this._scene,
+        }
+        adversary = new Adversary(this._scene);
+        this._controls = new Character(params);
+
+        AvailableControls = this._controls._input._keys;
+
+        Target = this._controls;
+        Cam = this._camera;
+        //create cameras
+        this._thirdPersonCamera = new ThirdPersonCamera({
+            camera: this._camera,
+            target: this._controls,
+        });
+
+        this._perspectiveCamera = new PerspectiveCamera({
+            camera: this._camera,
+            target: this._controls,
+        }, ctrls);
+    }
+
+    _LoadAnimatedModelAndPlay(path, modelFile, animFile, offset) {
+        const loader = new FBXLoader();
+        loader.setPath(path);
+        loader.load(modelFile, (fbx) => {
+            fbx.scale.setScalar(0.1);
+            fbx.traverse(c => {
+                c.castShadow = true;
             });
-            this._threejs.outputEncoding = THREE.sRGBEncoding;
-            this._threejs.shadowMap.enabled = true;
-            this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
-            this._threejs.setPixelRatio(window.devicePixelRatio);
+            fbx.position.copy(offset);
+
+            const anim = new FBXLoader();
+            anim.setPath(path);
+            anim.load(animFile, (anim) => {
+                const m = new THREE.AnimationMixer(fbx);
+                this._mixers.push(m);
+                const idle = m.clipAction(anim.animations[0]);
+                idle.play();
+            });
+            this._scene.add(fbx);
+        });
+    }
+
+    /**
+     * hierarchical Modelling for creating the end goal (pillar with gemstone attached)
+     * @method
+     **@returns {Group} hierarchical composition of all sub-objects created
+     */
+    _DrawPlatForm() {
+        let col;
+        if (level == '1') {
+            col = 0x0000ff;
+        } else if (level == '2') {
+            col = 0x39ff14;
+        } else {
+            col = 0xff0000;
+        }
+        const GemGeo = new THREE.TetrahedronGeometry(5, 1);
+        const GemMaterial = new THREE.MeshBasicMaterial({
+            color: col,
+            wireframe: true,
+            wireframeLinewidth: 1
+        });
+
+        const GemStone = new THREE.Mesh(GemGeo, GemMaterial);
+        //  GemStone.position.set(60, 40, 30);
+        GemStone.position.y = 40;
+        //  this._scene.add(GemStone);
+        //create a stair for each side of the main platform
+        const Plat_Loader = new THREE.TextureLoader();
+        //load texture
+        const Plat_text = Plat_Loader.load("../resources/black_marble.jpg");
+        const stair1 = new THREE.BoxGeometry(10, 8, 10);
+        //set the material
+        const material = new THREE.MeshBasicMaterial({ map: Plat_text });
+        //create a mesh
+        const cube = new THREE.Mesh(stair1, material);
+        //rotate stair
+        //set position of stair case on the right
+        cube.position.y = 30;
+
+
+        //create a stair for each side of the main platform
+        const stair2 = new THREE.BoxGeometry(10, 8, 10);
+        //set the material
+        const material2 = new THREE.MeshBasicMaterial({ map: Plat_text });
+        //create a mesh
+        const cube2 = new THREE.Mesh(stair2, material2);
+        //rotate stair
+        //set position of stair case on the left
+        // cube2.position.set(60, 4, 30);
+        cube2.position.y = 4;
+
+
+        //create middle platform
+        const middle = new THREE.BoxGeometry(7, 25, 7);
+        //set the material
+        const material3 = new THREE.MeshBasicMaterial({ map: Plat_text });
+        //create mesh
+        const cube3 = new THREE.Mesh(middle, material3);
+        //set position of platform
+        // cube3.position.set(60, 20, 30);
+        cube3.position.y = 20;
+
+
+        //create platform group to add all components
+        let platform = new THREE.Group();
+        platform.add(cube);
+        platform.add(cube2);
+        platform.add(cube3);
+        platform.add(GemStone);
+
+        //return platform to render to scene
+        return platform;
+
+
+    }
+
+    /**
+     * Loads the maze for the various levels
+     * @method
+     */
+
+    _loadEnvironment() {
+        const game = this;
+        const loader = new FBXLoader();
+        if (level === '1') {
+            loader.load('../resources/mazes/lvl1_maze.fbx', function (object) {
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+
+                game.environmentProxy = object;
+            }, null, this.onError);
+        } else if (level === '2') {
+            loader.load('../resources/mazes/maze2.fbx', function (object) {
+                game._scene.add(object);
+                object.receiveShadow = true;
+                console.log(object);
+                object.name = "Environment";
+                game.environmentProxy = object;
+                object.traverse((t) => {
+                    t.name = "Environment";
+                })
+            }, null, this.onError);
+        } else {
+            loader.load('../resources/mazes/lvl3_maze.fbx', function (object) {
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+            }, null, this.onError);
+        }
+    }
+
+    /**
+     * Loads the solution of each maze to help the player out
+     * @method
+     */
+    _loadSolution() {
+        const game = this;
+        const loader = new FBXLoader();
+        if (level === '1') {
+            //no sulution
+        } else if (level === '2') {
+            loader.load('../resources/mazes/lvl2_solution.fbx', function (object) {
+                solution = object;
+                object.translateY(-12);
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+                //flash solution
+                setInterval(() => {
+                    solution.visible = true;
+                }, 5000);
+                setInterval(() => {
+                    solution.visible = false;
+                }, 3000);
+            }, null, this.onError);
+        } else {
+            loader.load('../resources/mazes/lvl3_solution.fbx', function (object) {
+                solution = object;
+                object.translateY(-12);
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+                //flash solution
+                setInterval(() => {
+                    solution.visible = true;
+                }, 5000);
+                setInterval(() => {
+                    solution.visible = false;
+                }, 3000);
+            }, null, this.onError);
+        }
+        /**
+         * Hides the maze solution from the player
+         * @method
+         */
+        _hideSolution() {
+            if (solution) {
+                solution.visible = false;
+            }
+        }
+
+        _OnWindowResize() {
+            this._camera.aspect = window.innerWidth / window.innerHeight;
+            this._camera.updateProjectionMatrix();
             this._threejs.setSize(window.innerWidth, window.innerHeight);
+
             this._insetWidth = window.innerHeight / 4;
             this._insetHeight = window.innerHeight / 4;
 
-            document.body.appendChild(this._threejs.domElement);
-
-            window.addEventListener('resize', () => {
-                this._OnWindowResize();
-            }, false);
-            const fov = 60;
-            this._aspect = 1920 / 1080;
-            const near = 2.0;
-            const far = 1000.0;
-
-            //create cameras
-            this._camera = new THREE.PerspectiveCamera(fov, this._aspect, near, far);
-
-            listener = new THREE.AudioListener();
-
-
-            this._camera.add(listener);
-
-            const audioLoader = new THREE.AudioLoader();
-
-            backgroundTheme = new THREE.Audio(listener);
-
-            audioLoader.load('../resources/sounds/horror_theme.mp3', function(buffer) {
-                backgroundTheme.setBuffer(buffer);
-                backgroundTheme.setLoop(true);
-                backgroundTheme.setVolume(1.2);
-                backgroundTheme.play();
-            });
-
-            //added mini map here
-            //adjust minimap scale
-            let viewSize = 140;
-            this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
-            this._cameraOrtho.zoom = 100;
-            this._cameraOrtho.position.set(0, 30, 0);
-            this._cameraOrtho.up.set(0, 1, 0);
-            this._cameraOrtho.lookAt(new THREE.Vector3());
-            this._camera.add(this._cameraOrtho);
-
-            const controls = new OrbitControls(this._camera, this._threejs.domElement);
-            controls.keys = {};
-            ctrls = controls;
-
-            controls.update();
-
-            this._scene = new THREE.Scene();
-            this._scene.add(this._camera);
-
-            //antialiasing done here
-            this.renderer = new THREE.WebGLRenderer({ antialias: true });
-
-            //added ambient light here
-            light = new THREE.AmbientLight(0xFFFFFF, 0.5);
-            this._scene.add(light);
-
-            //added directional light here
-            light = new THREE.DirectionalLight(0xFFFFFF, 1.5);
-            light.position.set(-100, 200, 300);
-            light.target.position.set(0, 0, 0);
-            light.castShadow = true;
-            light.shadow.bias = -0.001;
-            light.shadow.mapSize.width = 512;
-            light.shadow.mapSize.height = 512;
-            light.shadow.camera.near = 0.1;
-            light.shadow.camera.far = 500.0;
-            light.shadow.camera.near = 0.5;
-            light.shadow.camera.far = 500.0;
-            light.shadow.camera.left = 50;
-            light.shadow.camera.right = -50;
-            light.shadow.camera.top = 50;
-            light.shadow.camera.bottom = -50;
-
-            this._scene.add(light);
-
-
-            //Setting up dynamic skybox
-            const loader = new THREE.CubeTextureLoader();
-            const texture = loader.load([
-                '../resources/skybox1/skybox_left.png',
-                '../resources/skybox1/skybox_right.png',
-                '../resources/skybox1/skybox_up.png',
-                '../resources/skybox1/skybox_down.png',
-                '../resources/skybox1/skybox_front.png',
-                '../resources/skybox1/skybox_back.png',
-
-            ]);
-            const geometry = new THREE.BoxBufferGeometry(1000, 1000, 1000);
-            const material = this._generateMaterialsArray(this._getTexturesPaths('skybox'));
-            this.skybox = new THREE.Mesh(geometry, material);
-            this._scene.add(this.skybox);
-
-            //setting up the plane
-            const textureLoader = new THREE.TextureLoader();
-            const _PlaneBaseCol = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_basecolor.jpg");
-            const _PlaneNorm = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_normal.jpg");
-            const _PlaneRoughness = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_roughness.jpg");
-            const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_ambientOcclusion.jpg");
-            const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_height.png");
-
-            //creating the plane
-            const plane = new THREE.Mesh(
-                new THREE.PlaneGeometry(5000, 5000, 10, 10),
-                new THREE.MeshStandardMaterial({
-                    map: _PlaneBaseCol,
-                    normalMap: _PlaneNorm,
-                    displacementMap: _PlaneHeight,
-                    displacementScale: 0.05,
-                    roughnessMap: _PlaneRoughness,
-                    roughness: 0.5,
-                    aoMap: _PlaneAmbientOcc,
-                }));
-            plane.castShadow = false;
-            plane.receiveShadow = true;
-            plane.rotation.x = -Math.PI / 2;
-            this._scene.add(plane);
-
-            //testing out environment compatability for 3 dimensional playability
-
-            path = window.location.pathname;
-            level = path.split("/").pop().charAt(5);
-            this._loadEnvironment();
-            this._loadSolution();
-            this._mixers = [];
-            this._preveiousRAF = null;
-            this._clock = new THREE.Clock();
-
-
-            //Draw platform (goal of maze) with difference coloured gems
-
-            this._platform = this._DrawPlatForm();
-            if (level === '1') {
-                this._platform.position.set(-25.826967788871027, 0, 626.0965432774168);
-            } else if (level == '2') {
-                this._platform.position.set(2.8251132620141375, 0, 722.0679682006315);
-
-            } else {
-                this._platform.position.set(-38.234280902886155, 0, 929.8273839831012);
-            }
-            this._scene.add(this._platform);
-            this._LoadAnimatedModel(controls);
-            this._RAF();
+            this._cameraOrtho.aspect = this._insetWidth / this._insetHeight;
+            this._cameraOrtho.updateProjectionMatrix();
         }
 
+        _RAF() {
+            requestAnimationFrame((t) => {
+                if (this._previousRAF === null) {
+                    this._previousRAF = t;
+                }
 
-        /**
-         * gets the paths of the images to be loaded onto our skybox geometry
-         * @method
-         * @param {string} ident common substring found in all of our image paths
-         * @returns {List} list containing all the file paths of the skybox images
-         */
-        _getTexturesPaths(ident = 'skybox', refraction = true) {
-                const basePath = `/resources/skybox1/${ident}`;
-                const ext = '.png';
-                const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
+                let delta = this._clock.getDelta();
 
-                return sides.map(side => {
-                    return basePath + side + ext;
-                });
-            }
-            /**
-             * gets the paths of the images to be loaded onto our skybox geometry
-             * @method
-             * @param {List} urls list containing filepaths of images
-             * @returns {THREE.MeshBasicMaterial} a three js material define using the images found in urls
-             */
-        _generateMaterialsArray(urls = []) {
-            return urls.map((url) => {
-                const texture = new THREE.TextureLoader().load(url);
-                texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+                //place orb if need be
+                if (placeOrb) {
+                    new Orb(Target.Position.x, Target.Position.z, this._scene);
+                    placeOrb = false;
+                }
 
-                const props = {
-                    map: texture,
-                    side: THREE.BackSide,
-                    fog: false,
-                    depthWrite: false,
-                };
+                //timer
+                if (!(secondsDiff > 0)) {
+                    clearInterval(timerInterval);
+                    paused = true;
+                    timerTag.className = "loaderHidden";
+                    document.getElementById("gameOver").className = "endGame";
+                }
 
-                return new THREE.MeshBasicMaterial(props);
+
+                //dynamic skybox
+                const initialRotY = this.skybox.rotation.y;
+                const initialRotX = this.skybox.rotation.x;
+                this.skybox.rotation.y = initialRotY + (delta * -0.06);
+                this.skybox.rotation.x = initialRotX;
+                this.skybox.position.x = Target.Position.x;
+                this.skybox.position.z = Target.Position.z;
+
+                //minimap
+                this._threejs.setClearColor(0x000000);
+                this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
+                this._threejs.render(this._scene, this._camera);
+
+                this._threejs.setClearColor(0x333333);
+                this._threejs.clearDepth();
+                this._threejs.setScissorTest(true);
+
+                //map view controller
+                if (!map) {
+                    let viewSize = 140;
+                    this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
+                    this._cameraOrtho.zoom = 100;
+                    this._cameraOrtho.position.set(0, 30, 0);
+                    this._cameraOrtho.up.set(0, 1, 0);
+                    this._cameraOrtho.lookAt(new THREE.Vector3());
+                    this._camera.add(this._cameraOrtho);
+
+                    this._threejs.setScissor(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+                    this._threejs.setViewport(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+                } else {
+                    let viewSize = 500;
+                    this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (viewSize) / 2, (viewSize) / -2, -200, 1000);
+                    this._cameraOrtho.zoom = 100;
+                    this._cameraOrtho.position.set(0, 30, 0);
+                    this._cameraOrtho.up.set(0, 1, 0);
+                    this._cameraOrtho.lookAt(new THREE.Vector3());
+                    this._camera.add(this._cameraOrtho);
+
+                    this._threejs.setScissor(0, 0, window.innerWidth, window.innerHeight);
+                    this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
+                }
+                this._threejs.render(this._scene, this._cameraOrtho);
+                this._threejs.setScissorTest(false);
+
+                this._Step(delta);
+                this._previousRAF = t;
+                this._RAF();
             });
         }
 
         /**
          * Calculate age
          * @method
-         * @param {raycaster} raycaster ray calcuated in a particular direction
-         * @returns {boolean} whether or not there is an object in the way of the main character
+         * @param {float} currTimer current time left when user finishes level
+         * @param {float} lvlMins number of minutes taken to complete level
+         * @returns {string} the time taken for the player to complete the maze
          */
-        _movePlayer() {
-            const pos = Target.Position;
-            pos.y += 60;
-            let dir = new THREE.Vector3();
-            this._camera.getWorldDirection(dir);
 
-            if (this.environmentProxy != undefined) {
-                //cast in front
-                let raycaster_front = new THREE.Raycaster(pos, dir);
-                let Front_Blocked = this._CheckBlocked(raycaster_front);
-                if (Front_Blocked) {
-                    AvailableControls.forward = false;
-                }
-            }
+        _CalculateTimeTake(currTimer, lvlMins) {
+            let tot = lvlMins * 60;
+            let strTime = currTimer.split(":");
+            let intTime = [parseInt(strTime[0]), parseInt(strTime[1])];
 
-            if (this.environmentProxy != undefined) {
-                //cast behind
-                dir.set(0, 0, -1);
-                dir.applyMatrix4(this._camera.matrix);
-                dir.normalize();
-                let ryacaster_back = new THREE.Raycaster(pos, dir);
-                let Back_Blocked = this._CheckBlocked(ryacaster_back);
-                if (Back_Blocked) {
-                    AvailableControls.backward = false;
+            let secs = intTime[0] * 60; //mins *60
+            secs = secs + intTime[1]; //mins in seconds +seconds
+            let diff = tot - secs;
+
+            if (diff < 60) {
+                return "00:" + diff;
+
+            } else if (diff > 60) {
+                let s = diff % 60;
+                let m = (diff - s) / 60;
+
+                if (s < 10) {
+                    s = "0" + s.toString();
                 }
+                return "0" + m + ":" + s;
             }
         }
+
 
         /**
-         * Check if there is an object blocking the character
+         * Checks whether our main character is in the vicinity of the gemstone
          * @method
-         * @param {raycaster} raycaster ray calcuated in a particular direction
-         * @returns {boolean} whether or not there is an object in the way of the main character
+         * @returns {boolean} whether or not the character has won
          */
 
-        _CheckBlocked(raycaster) {
-            let blocked = false;
-            for (let box of this.environmentProxy.children) { //environmentProxy stores all the boxes that we created in createDummyEnv
-                const intersect = raycaster.intersectObject(box);
-                if (intersect.length > 0) { //intersect is an array that stores all the boxes that is in the path of our raycaster
-                    if (intersect[0].distance < DistFromBox) { //it is ordered by distance , so the closest is at pos[0] ,hence intersect[0].
-                        blocked = true; //Player should not be able to move in that direction
-                        break;
-                    }
-                }
-            }
-            return blocked;
-        }
+        _CheckWin() {
+            let cx = this._platform.position.x;
+            let cy = 0;
+            let cz = this._platform.position.z;
+            let tx = Target.Position.x;
+            let ty = 0;
+            let tz = Target.Position.z;
 
-        /**
-         * Creates a new character and adversary instance and sets up cameras
-         * @method
-         * @param {OrbitControls} ctrls allows us to move or drag the cameras around
-         */
-        _LoadAnimatedModel(ctrls) {
-            const params = {
-                camera: this._camera,
-                scene: this._scene,
-            }
-            adversary = new Adversary(this._scene);
-            this._controls = new Character(params);
-
-            AvailableControls = this._controls._input._keys;
-
-            Target = this._controls;
-            Cam = this._camera;
-            //create cameras
-            this._thirdPersonCamera = new ThirdPersonCamera({
-                camera: this._camera,
-                target: this._controls,
-            });
-
-            this._perspectiveCamera = new PerspectiveCamera({
-                camera: this._camera,
-                target: this._controls,
-            }, ctrls);
-        }
-
-        _LoadAnimatedModelAndPlay(path, modelFile, animFile, offset) {
-            const loader = new FBXLoader();
-            loader.setPath(path);
-            loader.load(modelFile, (fbx) => {
-                fbx.scale.setScalar(0.1);
-                fbx.traverse(c => {
-                    c.castShadow = true;
-                });
-                fbx.position.copy(offset);
-
-                const anim = new FBXLoader();
-                anim.setPath(path);
-                anim.load(animFile, (anim) => {
-                    const m = new THREE.AnimationMixer(fbx);
-                    this._mixers.push(m);
-                    const idle = m.clipAction(anim.animations[0]);
-                    idle.play();
-                });
-                this._scene.add(fbx);
-            });
-        }
-
-        /**
-         * hierarchical Modelling for creating the end goal (pillar with gemstone attached)
-         * @method
-         **@returns {Group} hierarchical composition of all sub-objects created
-         */
-        _DrawPlatForm() {
-            let col;
-            if (level == '1') {
-                col = 0x0000ff;
-            } else if (level == '2') {
-                col = 0x39ff14;
+            let dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2) + Math.pow(cz - tz, 2));
+            if ((dist) < 15) { //targets distane from the box
+                AvailableControls.forward = false;
+                return true;
             } else {
-                col = 0xff0000;
+                //AvailableControls.forward= true;
+                return false;
             }
-            const GemGeo = new THREE.TetrahedronGeometry(5, 1);
-            const GemMaterial = new THREE.MeshBasicMaterial({
-                color: col,
-                wireframe: true,
-                wireframeLinewidth: 1
-            });
-
-            const GemStone = new THREE.Mesh(GemGeo, GemMaterial);
-            //  GemStone.position.set(60, 40, 30);
-            GemStone.position.y = 40;
-            //  this._scene.add(GemStone);
-            //create a stair for each side of the main platform
-            const Plat_Loader = new THREE.TextureLoader();
-            //load texture
-            const Plat_text = Plat_Loader.load("../resources/black_marble.jpg");
-            const stair1 = new THREE.BoxGeometry(10, 8, 10);
-            //set the material
-            const material = new THREE.MeshBasicMaterial({ map: Plat_text });
-            //create a mesh
-            const cube = new THREE.Mesh(stair1, material);
-            //rotate stair
-            //set position of stair case on the right
-            cube.position.y = 30;
-
-
-            //create a stair for each side of the main platform
-            const stair2 = new THREE.BoxGeometry(10, 8, 10);
-            //set the material
-            const material2 = new THREE.MeshBasicMaterial({ map: Plat_text });
-            //create a mesh
-            const cube2 = new THREE.Mesh(stair2, material2);
-            //rotate stair
-            //set position of stair case on the left
-            // cube2.position.set(60, 4, 30);
-            cube2.position.y = 4;
-
-
-            //create middle platform
-            const middle = new THREE.BoxGeometry(7, 25, 7);
-            //set the material
-            const material3 = new THREE.MeshBasicMaterial({ map: Plat_text });
-            //create mesh
-            const cube3 = new THREE.Mesh(middle, material3);
-            //set position of platform
-            // cube3.position.set(60, 20, 30);
-            cube3.position.y = 20;
-
-
-            //create platform group to add all components
-            let platform = new THREE.Group();
-            platform.add(cube);
-            platform.add(cube2);
-            platform.add(cube3);
-            platform.add(GemStone);
-
-            //return platform to render to scene
-            return platform;
-
-
-        }
-
-        /**
-         * Loads the maze for the various levels
-         * @method
-         */
-
-        _loadEnvironment() {
-            const game = this;
-            const loader = new FBXLoader();
-            if (level === '1') {
-                loader.load('../resources/mazes/lvl1_maze.fbx', function(object) {
-                    game._scene.add(object);
-                    object.receiveShadow = true;
-                    object.name = "Environment";
-
-                    game.environmentProxy = object;
-                }, null, this.onError);
-            } else if (level === '2') {
-                loader.load('../resources/mazes/maze2.fbx', function(object) {
-                    game._scene.add(object);
-                    object.receiveShadow = true;
-                    console.log(object);
-                    object.name = "Environment";
-                    game.environmentProxy = object;
-                    object.traverse((t) => {
-                        t.name = "Environment";
-                    })
-                }, null, this.onError);
-            } else {
-                loader.load('../resources/mazes/lvl3_maze.fbx', function(object) {
-                    game._scene.add(object);
-                    object.receiveShadow = true;
-                    object.name = "Environment";
-                    game.environmentProxy = object;
-                }, null, this.onError);
-            }
-        }
-
-        /**
-         * Loads the solution of each maze to help the player out
-         * @method
-         */
-        _loadSolution() {
-                const game = this;
-                const loader = new FBXLoader();
-                if (level === '1') {
-                    //no sulution
-                } else if (level === '2') {
-                    loader.load('../resources/mazes/lvl2_solution.fbx', function(object) {
-                        solution = object;
-                        object.translateY(-12);
-                        game._scene.add(object);
-                        object.receiveShadow = true;
-                        object.name = "Environment";
-                        game.environmentProxy = object;
-                        //flash solution
-                        setInterval(() => {
-                            solution.visible = true;
-                        }, 5000);
-                        setInterval(() => {
-                            solution.visible = false;
-                        }, 3000);
-                    }, null, this.onError);
-                } else {
-                    loader.load('../resources/mazes/lvl3_solution.fbx', function(object) {
-                        solution = object;
-                        object.translateY(-12);
-                        game._scene.add(object);
-                        object.receiveShadow = true;
-                        object.name = "Environment";
-                        game.environmentProxy = object;
-                        //flash solution
-                        setInterval(() => {
-                            solution.visible = true;
-                        }, 5000);
-                        setInterval(() => {
-                            solution.visible = false;
-                        }, 3000);
-                    }, null, this.onError);
-                }
-                /**
-                 * Hides the maze solution from the player
-                 * @method
-                 */
-                _hideSolution() {
-                    if (solution) {
-                        solution.visible = false;
+            /**
+             * Renders the current state of the game
+             * @method
+             * @param {number} timeElapsed the number of seconds that the game has been running for
+             */
+            _Step(timeElapsed) {
+                if (!paused) {
+                    if (backgroundTheme && adversaryMusic) {
+                        if (!backgroundTheme.isPlaying) {
+                            backgroundTheme.play();
+                        }
+                        if (!adversaryMusic.isPlaying) {
+                            adversaryMusic.play();
+                        }
                     }
-                }
-
-                _OnWindowResize() {
-                    this._camera.aspect = window.innerWidth / window.innerHeight;
-                    this._camera.updateProjectionMatrix();
-                    this._threejs.setSize(window.innerWidth, window.innerHeight);
-
-                    this._insetWidth = window.innerHeight / 4;
-                    this._insetHeight = window.innerHeight / 4;
-
-                    this._cameraOrtho.aspect = this._insetWidth / this._insetHeight;
-                    this._cameraOrtho.updateProjectionMatrix();
-                }
-
-                _RAF() {
-                    requestAnimationFrame((t) => {
-                        if (this._previousRAF === null) {
-                            this._previousRAF = t;
-                        }
-
-                        let delta = this._clock.getDelta();
-
-                        //place orb if need be
-                        if (placeOrb) {
-                            new Orb(Target.Position.x, Target.Position.z, this._scene);
-                            placeOrb = false;
-                        }
-
-                        //timer
-                        if (!(secondsDiff > 0)) {
-                            clearInterval(timerInterval);
-                            paused = true;
-                            timerTag.className = "loaderHidden";
-                            document.getElementById("gameOver").className = "endGame";
-                        }
-
-
-                        //dynamic skybox
-                        const initialRotY = this.skybox.rotation.y;
-                        const initialRotX = this.skybox.rotation.x;
-                        this.skybox.rotation.y = initialRotY + (delta * -0.06);
-                        this.skybox.rotation.x = initialRotX;
-                        this.skybox.position.x = Target.Position.x;
-                        this.skybox.position.z = Target.Position.z;
-
-                        //minimap
-                        this._threejs.setClearColor(0x000000);
-                        this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
-                        this._threejs.render(this._scene, this._camera);
-
-                        this._threejs.setClearColor(0x333333);
-                        this._threejs.clearDepth();
-                        this._threejs.setScissorTest(true);
-
-                        //map view controller
-                        if (!map) {
-                            let viewSize = 140;
-                            this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
-                            this._cameraOrtho.zoom = 100;
-                            this._cameraOrtho.position.set(0, 30, 0);
-                            this._cameraOrtho.up.set(0, 1, 0);
-                            this._cameraOrtho.lookAt(new THREE.Vector3());
-                            this._camera.add(this._cameraOrtho);
-
-                            this._threejs.setScissor(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
-                            this._threejs.setViewport(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
-                        } else {
-                            let viewSize = 500;
-                            this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (viewSize) / 2, (viewSize) / -2, -200, 1000);
-                            this._cameraOrtho.zoom = 100;
-                            this._cameraOrtho.position.set(0, 30, 0);
-                            this._cameraOrtho.up.set(0, 1, 0);
-                            this._cameraOrtho.lookAt(new THREE.Vector3());
-                            this._camera.add(this._cameraOrtho);
-
-                            this._threejs.setScissor(0, 0, window.innerWidth, window.innerHeight);
-                            this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
-                        }
-                        this._threejs.render(this._scene, this._cameraOrtho);
-                        this._threejs.setScissorTest(false);
-
-                        this._Step(delta);
-                        this._previousRAF = t;
-                        this._RAF();
-                    });
-                }
-
-                /**
-                 * Calculate age
-                 * @method
-                 * @param {float} currTimer current time left when user finishes level
-                 * @param {float} lvlMins number of minutes taken to complete level
-                 * @returns {string} the time taken for the player to complete the maze
-                 */
-
-                _CalculateTimeTake(currTimer, lvlMins) {
-                    let tot = lvlMins * 60;
-                    let strTime = currTimer.split(":");
-                    let intTime = [parseInt(strTime[0]), parseInt(strTime[1])];
-
-                    let secs = intTime[0] * 60; //mins *60
-                    secs = secs + intTime[1]; //mins in seconds +seconds
-                    let diff = tot - secs;
-
-                    if (diff < 60) {
-                        return "00:" + diff;
-
-                    } else if (diff > 60) {
-                        let s = diff % 60;
-                        let m = (diff - s) / 60;
-
-                        if (s < 10) {
-                            s = "0" + s.toString();
-                        }
-                        return "0" + m + ":" + s;
-                    }
-                }
-
-
-                /**
-                 * Checks whether our main character is in the vicinity of the gemstone
-                 * @method
-                 * @returns {boolean} whether or not the character has won
-                 */
-
-                _CheckWin() {
-                    let cx = this._platform.position.x;
-                    let cy = 0;
-                    let cz = this._platform.position.z;
-                    let tx = Target.Position.x;
-                    let ty = 0;
-                    let tz = Target.Position.z;
-
-                    let dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2) + Math.pow(cz - tz, 2));
-                    if ((dist) < 15) { //targets distane from the box
-                        AvailableControls.forward = false;
-                        return true;
+                    this._platform.children[3].rotation.y += 0.05;
+                    let currTimer = timerTag.innerHTML;
+                    //need to stop the clock
+                    interact = this._CheckWin();
+                    if (interact) {
+                        document.getElementById('prompt').className = 'interactPrompt';
                     } else {
-                        //AvailableControls.forward= true;
-                        return false;
+                        document.getElementById('prompt').className = 'loaderHidden';
                     }
-                    /**
-                     * Renders the current state of the game
-                     * @method
-                     * @param {number} timeElapsed the number of seconds that the game has been running for
-                     */
-                    _Step(timeElapsed) {
-                        if (!paused) {
-                            if (backgroundTheme && adversaryMusic) {
-                                if (!backgroundTheme.isPlaying) {
-                                    backgroundTheme.play();
-                                }
-                                if (!adversaryMusic.isPlaying) {
-                                    adversaryMusic.play();
-                                }
-                            }
-                            this._platform.children[3].rotation.y += 0.05;
-                            let currTimer = timerTag.innerHTML;
-                            //need to stop the clock
-                            interact = this._CheckWin();
-                            if (interact) {
-                                document.getElementById('prompt').className = 'interactPrompt';
-                            } else {
-                                document.getElementById('prompt').className = 'loaderHidden';
-                            }
 
-                            const timeElapsedS = timeElapsed;
+                    const timeElapsedS = timeElapsed;
 
-                            this._movePlayer(timeElapsedS);
-                            if (this._mixers) {
-                                //update mixers
-                                this._mixers.map(m => m.update(timeElapsedS));
-                            }
-
-                            if (this._controls) {
-                                this._controls.Update(timeElapsedS);
-                            }
-
-                            if (adversary) {
-                                adversary.Update(timeElapsedS);
-                            }
-
-                            if (peekView) {
-                                this._perspectiveCamera.Update(timeElapsedS);
-                            } else {
-                                this._thirdPersonCamera.Update(timeElapsedS);
-                            }
-                        } else {
-                            backgroundTheme.pause();
-                            adversaryMusic.pause();
-                        }
+                    this._movePlayer(timeElapsedS);
+                    if (this._mixers) {
+                        //update mixers
+                        this._mixers.map(m => m.update(timeElapsedS));
                     }
+
+                    if (this._controls) {
+                        this._controls.Update(timeElapsedS);
+                    }
+
+                    if (adversary) {
+                        adversary.Update(timeElapsedS);
+                    }
+
+                    if (peekView) {
+                        this._perspectiveCamera.Update(timeElapsedS);
+                    } else {
+                        this._thirdPersonCamera.Update(timeElapsedS);
+                    }
+                } else {
+                    backgroundTheme.pause();
+                    adversaryMusic.pause();
                 }
+            }
+        }
 
 
-                let _APP = null;
+        let _APP = null;
 
-                window.addEventListener('DOMContentLoaded', () => {
-                    _APP = new Main();
-                });
+        window.addEventListener('DOMContentLoaded', () => {
+            _APP = new Main();
+        });
