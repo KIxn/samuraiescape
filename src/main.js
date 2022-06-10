@@ -62,14 +62,21 @@ function creatHUD() {
     document.head.appendChild(script);
 }
 
-/**
- * Intermediary class for animating a character
- */
+/** Intermediary class for animating a character*/
 class BasicCharacterControllerProxy {
+
+    /**
+     * Create BasicCharacterControllerProxy
+     * @param {list} animations- a list of animations
+     */
     constructor(animations) {
         this._animations = animations;
     }
 
+    /**
+     * Get the animation list
+     * @return {list} returns list of animations
+     */
     get animations() {
         return this._animations;
     }
@@ -238,10 +245,18 @@ class Adversary {
  * class defining the Mechanics of the main character
  */
 class Character {
+    /**
+     * Create Character
+     * @param {Object} params- an object containing camera and scene
+     */
     constructor(params) {
         this._Init(params);
     }
 
+    /**
+     * Inilialises the various attritubes of the character
+     * @param {Object} params- an object containing camera and scene
+     */
     _Init(params) {
         this._params = params;
         this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
@@ -257,15 +272,21 @@ class Character {
         this._LoadModels();
     }
 
+    /**
+     * Inilialises the various attritubes of the character
+     *@return {Object} the target is returned as a control object
+     */
     getTarget() {
-            if (this._target) {
-                const controlObject = this._target;
-                return (controlObject);
-            }
+        if (this._target) {
+            const controlObject = this._target;
+            console.log(controlObject);
+            return (controlObject);
         }
-        /**
-         * Loads animated character to the scene
-         */
+    }
+
+    /**
+     * Loads animated character to the scene
+     */
     _LoadModels() {
         const loader = new FBXLoader();
         loader.setPath('../resources/kangin_lee/');
@@ -312,6 +333,9 @@ class Character {
         return this._position;
     }
 
+    /**
+     * returns targets quaternion which will be used for rotations
+     */
     get Rotation() {
         if (!this._target) {
             return new THREE.Quaternion();
@@ -319,6 +343,10 @@ class Character {
         return this._target.quaternion;
     }
 
+    /**
+     * Updates the various attributes of the character such as velocity,rotation etc
+     * @param {number} timeInSeconds -the number of seconds that the game has been running for
+     */
     Update(timeInSeconds) {
         if (!this._target) {
             return;
@@ -520,30 +548,47 @@ class BasicCharacterControllerInput {
  * Interface class for state machine to keep track of the character's movements
  */
 class FiniteStateMachine {
-    constructor() {
-        this._states = {};
-        this._currentState = new IdleState(this);
-    }
 
+    /**
+     * Initiates State Machine
+     */
+    constructor() {
+            this._states = {};
+            this._currentState = new IdleState(this);
+        }
+        /**
+         * Adds state to state machine
+         * * @param {string} name - The name of the state
+         * @param {class} type - state class extending state
+         */
     _AddState(name, type) {
+        console.log(type);
         this._states[name] = type;
     }
 
+    /**
+     *transition from one state to the next
+     * * @param {string} name - The name of the state
+     */
     SetState(name) {
-        const prevState = this._currentState;
+            const prevState = this._currentState;
 
-        if (prevState) {
-            if (prevState.Name == name) {
-                return;
+            if (prevState) {
+                if (prevState.Name == name) {
+                    return;
+                }
+                prevState.Exit();
             }
-            prevState.Exit();
+
+            const state = new this._states[name](this);
+
+            this._currentState = state;
+            state.Enter(prevState);
         }
-
-        const state = new this._states[name](this);
-
-        this._currentState = state;
-        state.Enter(prevState);
-    }
+        /**
+         *Update the current state
+         * * @param {number} timeElapsed - The number of seconds the game has been running for
+         */
 
     Update(timeElapsed, input) {
         if (this._currentState) {
@@ -553,15 +598,20 @@ class FiniteStateMachine {
 };
 
 /**
- * Implementation of the finite state machine class for character movement
+ * Class representing our characters Finite state machine
+ * @extends FiniteStateMachine
  */
 class CharacterFSM extends FiniteStateMachine {
+
     constructor(proxy) {
         super();
         this._proxy = proxy;
         this._Init();
     }
 
+    /**
+     * add states to our characters FSM
+     */
     _Init() {
         this._AddState('idle', IdleState);
         this._AddState('walk', WalkState);
@@ -575,14 +625,17 @@ class CharacterFSM extends FiniteStateMachine {
  * Interface  that defines methods for each movement state
  */
 class State {
+    /**
+     * * @param {class} name - the CharacterFSM class
+     */
     constructor(parent) {
         this._parent = parent;
     }
-
     Enter() {}
     Exit() {}
     Update() {}
 };
+
 /**
  * States defining characters movement
  */
@@ -840,8 +893,6 @@ class PerspectiveCamera {
             const idealOffset = this._CalculateIdealOffset();
             const idealLookat = this._CalculateIdealLookat();
 
-            // const t = 0.05;
-            // const t = 4.0 * timeElapsed;
             const t = 1.0 - Math.pow(0.001, timeElapsed);
 
             this._currentPosition.lerp(idealOffset, t);
@@ -857,13 +908,20 @@ class PerspectiveCamera {
 
 }
 
-
-
+/**
+ * Main class that loads set ups and updates each each level as timeElapsed increases
+ */
 class Main {
+    /**
+     * calls our initialize function to set uo our scene
+     */
     constructor() {
         this._Initialize();
     }
 
+    /**
+     * Sets up our scene
+     */
     _Initialize() {
         //stats
         creatHUD();
@@ -1039,6 +1097,26 @@ class Main {
         this._RAF();
     }
 
+
+    /**
+     * gets the paths of the images to be loaded onto our skybox geometry
+     * @param {string} ident common substring found in all of our image paths
+     * @returns {List} list containing all the file paths of the skybox images
+     */
+    _getTexturesPaths(ident = 'skybox', refraction = true) {
+            const basePath = `/resources/skybox1/${ident}`;
+            const ext = '.png';
+            const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
+
+            return sides.map(side => {
+                return basePath + side + ext;
+            });
+        }
+        /**
+         * gets the paths of the images to be loaded onto our skybox geometry
+         * @param {List} urls list containing filepaths of images
+         * @returns {THREE.MeshBasicMaterial} a three js material define using the images found in urls
+         */
     _generateMaterialsArray(urls = []) {
         return urls.map((url) => {
             const texture = new THREE.TextureLoader().load(url);
@@ -1050,22 +1128,8 @@ class Main {
                 fog: false,
                 depthWrite: false,
             };
+
             return new THREE.MeshBasicMaterial(props);
-        });
-    }
-
-    /**
-     * gets the paths of the images to be loaded onto our skybox geometries
-     * @param {string} ident
-     * @returns {Array} array containing all the file paths of the skybox images
-     */
-    _getTexturesPaths(ident = 'skybox', refraction = true) {
-        const basePath = `/resources/skybox1/${ident}`;
-        const ext = '.png';
-        const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
-
-        return sides.map(side => {
-            return basePath + side + ext;
         });
     }
 
@@ -1122,6 +1186,10 @@ class Main {
         return blocked;
     }
 
+    /**
+     * Creates a new character and adversary instance and sets up cameras
+     * @param {OrbitControls} ctrls allows us to move or drag the cameras around
+     */
     _LoadAnimatedModel(ctrls) {
         const params = {
             camera: this._camera,
@@ -1170,6 +1238,7 @@ class Main {
 
     /**
      * Hierarchial Modelling for creating the end goal (pillar with gemstone attached)
+     ** @returns {Group} hierarchialcomposition of all sub-objects created
      */
     _DrawPlatForm() {
         let col;
@@ -1248,11 +1317,6 @@ class Main {
     _loadEnvironment() {
         const game = this;
         const loader = new FBXLoader();
-
-        //
-
-        // console.log(page);
-
         if (level === '1') {
             loader.load('../resources/mazes/lvl1_maze.fbx', function(object) {
                 game._scene.add(object);
