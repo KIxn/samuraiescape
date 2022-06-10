@@ -42,7 +42,7 @@ let listener;
  * @param { float } z1
  * @param { float } x2
  * @param { float } z2
- * @returns {float} distance 
+ * @returns {float} distance
  */
 
 function Distance(x1, z1, x2, z2) {
@@ -61,7 +61,7 @@ function Distance(x1, z1, x2, z2) {
  */
 function creatHUD() {
     let script = document.createElement("script");
-    script.onload = function () {
+    script.onload = function() {
         let stats = new Stats();
         document.body.appendChild(stats.dom);
         requestAnimationFrame(function loop() {
@@ -73,7 +73,7 @@ function creatHUD() {
     document.head.appendChild(script);
 }
 
-/** 
+/**
  * @namespace Proxy
  * Create BasicCharacterControllerProxy
  * @class
@@ -123,7 +123,7 @@ class Adversary {
             this._scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = async () => {
+            this._manager.onLoad = async() => {
                 console.log('done loading');
                 await new Promise(r => setTimeout(r, 2000));
                 document.getElementById('loadingScreen').className = 'loaderHidden';
@@ -150,12 +150,12 @@ class Adversary {
                         }
                     }
                 }, 1000);
-                (level === '3') ? this.setRun() : this.setCrawl();
+                (level === '3') ? this.setRun(): this.setCrawl();
                 //positional
                 let tmp = new THREE.PositionalAudio(listener);
                 const audioLoader = new THREE.AudioLoader();
 
-                audioLoader.load('../resources/sounds/monster_growl.mp3', function (buffer) {
+                audioLoader.load('../resources/sounds/monster_growl.mp3', function(buffer) {
                     adversaryMusic = tmp;
                     adversaryMusic.setBuffer(buffer);
                     adversaryMusic.setLoop(true);
@@ -194,26 +194,26 @@ class Adversary {
      * @method
      */
     setIdle() {
-        if (this._animations['crawlRun']) {
-            const idleAction = this._animations['idle'].action;
-            idleAction.play();
+            if (this._animations['crawlRun']) {
+                const idleAction = this._animations['idle'].action;
+                idleAction.play();
+            }
         }
-    }
-    /**
-     * Setting Run animations
-     * @method
-     */
+        /**
+         * Setting Run animations
+         * @method
+         */
 
     setRun() {
-        if (this._animations['crawlRun']) {
-            const runAction = this._animations['run'].action;
-            runAction.play();
+            if (this._animations['crawlRun']) {
+                const runAction = this._animations['run'].action;
+                runAction.play();
+            }
         }
-    }
-    /**
-     * Seting crawl animations
-     * @method
-     */
+        /**
+         * Seting crawl animations
+         * @method
+         */
 
     setCrawl() {
         if (this._animations['crawlRun']) {
@@ -587,15 +587,15 @@ class BasicCharacterControllerInput {
 class FiniteStateMachine {
 
     constructor() {
-        this._states = {};
-        this._currentState = new IdleState(this);
-    }
-    /**
-     * Adds state to state machine
-     * @method
-     * @param {string} name - The name of the state
-     * @param {class} type - state class extending state
-     */
+            this._states = {};
+            this._currentState = new IdleState(this);
+        }
+        /**
+         * Adds state to state machine
+         * @method
+         * @param {string} name - The name of the state
+         * @param {class} type - state class extending state
+         */
     _AddState(name, type) {
         console.log(type);
         this._states[name] = type;
@@ -607,13 +607,14 @@ class FiniteStateMachine {
      * @param {string} name - The name of the state
      */
     SetState(name) {
-        const prevState = this._currentState;
+            const prevState = this._currentState;
 
-        if (prevState) {
-            if (prevState.Name == name) {
-                return;
+            if (prevState) {
+                if (prevState.Name == name) {
+                    return;
+                }
+                prevState.Exit();
             }
-            prevState.Exit();
         }
         /**
          *Update the current state
@@ -622,21 +623,21 @@ class FiniteStateMachine {
          * @param { Object} input - instance of a state (idle,run etc)
          */
 
-        Update(timeElapsed, input) {
-            if (this._currentState) {
-                this._currentState.Update(timeElapsed, input);
-            }
+    Update(timeElapsed, input) {
+        if (this._currentState) {
+            this._currentState.Update(timeElapsed, input);
         }
-    };
+    }
+};
 
-    /**
-     * Class representing our characters Finite state machine
-     * @class
-     * @constructor
-     * @param { Object} proxy - instance of a finite state machine
-     * @extends FiniteStateMachine
-     */
-    class CharacterFSM extends FiniteStateMachine {
+/**
+ * Class representing our characters Finite state machine
+ * @class
+ * @constructor
+ * @param { Object} proxy - instance of a finite state machine
+ * @extends FiniteStateMachine
+ */
+class CharacterFSM extends FiniteStateMachine {
 
     constructor(proxy) {
         super();
@@ -668,9 +669,9 @@ class State {
     constructor(parent) {
         this._parent = parent;
     }
-    Enter() { }
-    Exit() { }
-    Update() { }
+    Enter() {}
+    Exit() {}
+    Update() {}
 };
 
 /**
@@ -726,7 +727,7 @@ class AttackState extends State {
         this._Cleanup();
     }
 
-    Update(_) { }
+    Update(_) {}
 };
 
 
@@ -762,7 +763,7 @@ class WalkState extends State {
         }
     }
 
-    Exit() { }
+    Exit() {}
 
     Update(timeElapsed, input) {
 
@@ -809,7 +810,7 @@ class RunState extends State {
         }
     }
 
-    Exit() { }
+    Exit() {}
 
     Update(timeElapsed, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -853,7 +854,7 @@ class IdleState extends State {
         }
     }
 
-    Exit() { }
+    Exit() {}
 
     Update(_, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -1021,7 +1022,7 @@ class Main {
 
         backgroundTheme = new THREE.Audio(listener);
 
-        audioLoader.load('../resources/sounds/horror_theme.mp3', function (buffer) {
+        audioLoader.load('../resources/sounds/horror_theme.mp3', function(buffer) {
             backgroundTheme.setBuffer(buffer);
             backgroundTheme.setLoop(true);
             backgroundTheme.setVolume(1.2);
@@ -1150,20 +1151,20 @@ class Main {
      * @returns {List} list containing all the file paths of the skybox images
      */
     _getTexturesPaths(ident = 'skybox', refraction = true) {
-        const basePath = `/resources/skybox1/${ident}`;
-        const ext = '.png';
-        const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
+            const basePath = `/resources/skybox1/${ident}`;
+            const ext = '.png';
+            const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
 
-        return sides.map(side => {
-            return basePath + side + ext;
-        });
-    }
-    /**
-     * gets the paths of the images to be loaded onto our skybox geometry
-     * @method
-     * @param {List} urls list containing filepaths of images
-     * @returns {THREE.MeshBasicMaterial} a three js material define using the images found in urls
-     */
+            return sides.map(side => {
+                return basePath + side + ext;
+            });
+        }
+        /**
+         * gets the paths of the images to be loaded onto our skybox geometry
+         * @method
+         * @param {List} urls list containing filepaths of images
+         * @returns {THREE.MeshBasicMaterial} a three js material define using the images found in urls
+         */
     _generateMaterialsArray(urls = []) {
         return urls.map((url) => {
             const texture = new THREE.TextureLoader().load(url);
@@ -1370,7 +1371,7 @@ class Main {
         const game = this;
         const loader = new FBXLoader();
         if (level === '1') {
-            loader.load('../resources/mazes/lvl1_maze.fbx', function (object) {
+            loader.load('../resources/mazes/lvl1_maze.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
@@ -1378,7 +1379,7 @@ class Main {
                 game.environmentProxy = object;
             }, null, this.onError);
         } else if (level === '2') {
-            loader.load('../resources/mazes/maze2.fbx', function (object) {
+            loader.load('../resources/mazes/maze2.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 console.log(object);
@@ -1389,7 +1390,7 @@ class Main {
                 })
             }, null, this.onError);
         } else {
-            loader.load('../resources/mazes/lvl3_maze.fbx', function (object) {
+            loader.load('../resources/mazes/lvl3_maze.fbx', function(object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
@@ -1403,177 +1404,178 @@ class Main {
      * @method
      */
     _loadSolution() {
-        const game = this;
-        const loader = new FBXLoader();
-        if (level === '1') {
-            //no sulution
-        } else if (level === '2') {
-            loader.load('../resources/mazes/lvl2_solution.fbx', function (object) {
-                solution = object;
-                object.translateY(-12);
-                game._scene.add(object);
-                object.receiveShadow = true;
-                object.name = "Environment";
-                game.environmentProxy = object;
-                //flash solution
-                setInterval(() => {
-                    solution.visible = true;
-                }, 5000);
-                setInterval(() => {
-                    solution.visible = false;
-                }, 3000);
-            }, null, this.onError);
-        } else {
-            loader.load('../resources/mazes/lvl3_solution.fbx', function (object) {
-                solution = object;
-                object.translateY(-12);
-                game._scene.add(object);
-                object.receiveShadow = true;
-                object.name = "Environment";
-                game.environmentProxy = object;
-                //flash solution
-                setInterval(() => {
-                    solution.visible = true;
-                }, 5000);
-                setInterval(() => {
-                    solution.visible = false;
-                }, 3000);
-            }, null, this.onError);
+            const game = this;
+            const loader = new FBXLoader();
+            if (level === '1') {
+                //no sulution
+            } else if (level === '2') {
+                loader.load('../resources/mazes/lvl2_solution.fbx', function(object) {
+                    solution = object;
+                    object.translateY(-12);
+                    game._scene.add(object);
+                    object.receiveShadow = true;
+                    object.name = "Environment";
+                    game.environmentProxy = object;
+                    //flash solution
+                    setInterval(() => {
+                        solution.visible = true;
+                    }, 5000);
+                    setInterval(() => {
+                        solution.visible = false;
+                    }, 3000);
+                }, null, this.onError);
+            } else {
+                loader.load('../resources/mazes/lvl3_solution.fbx', function(object) {
+                    solution = object;
+                    object.translateY(-12);
+                    game._scene.add(object);
+                    object.receiveShadow = true;
+                    object.name = "Environment";
+                    game.environmentProxy = object;
+                    //flash solution
+                    setInterval(() => {
+                        solution.visible = true;
+                    }, 5000);
+                    setInterval(() => {
+                        solution.visible = false;
+                    }, 3000);
+                }, null, this.onError);
+            }
         }
         /**
          * Hides the maze solution from the player
          * @method
          */
-        _hideSolution() {
-            if (solution) {
-                solution.visible = false;
-            }
+    _hideSolution() {
+        if (solution) {
+            solution.visible = false;
         }
+    }
 
-        _OnWindowResize() {
-            this._camera.aspect = window.innerWidth / window.innerHeight;
-            this._camera.updateProjectionMatrix();
-            this._threejs.setSize(window.innerWidth, window.innerHeight);
+    _OnWindowResize() {
+        this._camera.aspect = window.innerWidth / window.innerHeight;
+        this._camera.updateProjectionMatrix();
+        this._threejs.setSize(window.innerWidth, window.innerHeight);
 
-            this._insetWidth = window.innerHeight / 4;
-            this._insetHeight = window.innerHeight / 4;
+        this._insetWidth = window.innerHeight / 4;
+        this._insetHeight = window.innerHeight / 4;
 
-            this._cameraOrtho.aspect = this._insetWidth / this._insetHeight;
-            this._cameraOrtho.updateProjectionMatrix();
-        }
+        this._cameraOrtho.aspect = this._insetWidth / this._insetHeight;
+        this._cameraOrtho.updateProjectionMatrix();
+    }
 
-        _RAF() {
-            requestAnimationFrame((t) => {
-                if (this._previousRAF === null) {
-                    this._previousRAF = t;
-                }
-
-                let delta = this._clock.getDelta();
-
-                //place orb if need be
-                if (placeOrb) {
-                    new Orb(Target.Position.x, Target.Position.z, this._scene);
-                    placeOrb = false;
-                }
-
-                //timer
-                if (!(secondsDiff > 0)) {
-                    clearInterval(timerInterval);
-                    paused = true;
-                    timerTag.className = "loaderHidden";
-                    document.getElementById("gameOver").className = "endGame";
-                }
-
-
-                //dynamic skybox
-                const initialRotY = this.skybox.rotation.y;
-                const initialRotX = this.skybox.rotation.x;
-                this.skybox.rotation.y = initialRotY + (delta * -0.06);
-                this.skybox.rotation.x = initialRotX;
-                this.skybox.position.x = Target.Position.x;
-                this.skybox.position.z = Target.Position.z;
-
-                //minimap
-                this._threejs.setClearColor(0x000000);
-                this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
-                this._threejs.render(this._scene, this._camera);
-
-                this._threejs.setClearColor(0x333333);
-                this._threejs.clearDepth();
-                this._threejs.setScissorTest(true);
-
-                //map view controller
-                if (!map) {
-                    let viewSize = 140;
-                    this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
-                    this._cameraOrtho.zoom = 100;
-                    this._cameraOrtho.position.set(0, 30, 0);
-                    this._cameraOrtho.up.set(0, 1, 0);
-                    this._cameraOrtho.lookAt(new THREE.Vector3());
-                    this._camera.add(this._cameraOrtho);
-
-                    this._threejs.setScissor(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
-                    this._threejs.setViewport(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
-                } else {
-                    let viewSize = 500;
-                    this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (viewSize) / 2, (viewSize) / -2, -200, 1000);
-                    this._cameraOrtho.zoom = 100;
-                    this._cameraOrtho.position.set(0, 30, 0);
-                    this._cameraOrtho.up.set(0, 1, 0);
-                    this._cameraOrtho.lookAt(new THREE.Vector3());
-                    this._camera.add(this._cameraOrtho);
-
-                    this._threejs.setScissor(0, 0, window.innerWidth, window.innerHeight);
-                    this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
-                }
-                this._threejs.render(this._scene, this._cameraOrtho);
-                this._threejs.setScissorTest(false);
-
-                this._Step(delta);
+    _RAF() {
+        requestAnimationFrame((t) => {
+            if (this._previousRAF === null) {
                 this._previousRAF = t;
-                this._RAF();
-            });
-        }
-
-        /**
-         * Calculate age
-         * @method
-         * @param {float} currTimer current time left when user finishes level
-         * @param {float} lvlMins number of minutes taken to complete level
-         * @returns {string} the time taken for the player to complete the maze
-         */
-
-        _CalculateTimeTake(currTimer, lvlMins) {
-            let tot = lvlMins * 60;
-            let strTime = currTimer.split(":");
-            let intTime = [parseInt(strTime[0]), parseInt(strTime[1])];
-
-            let secs = intTime[0] * 60; //mins *60
-            secs = secs + intTime[1]; //mins in seconds +seconds
-            let diff = tot - secs;
-
-            if (diff < 60) {
-                return "00:" + diff;
-
-            } else if (diff > 60) {
-                let s = diff % 60;
-                let m = (diff - s) / 60;
-
-                if (s < 10) {
-                    s = "0" + s.toString();
-                }
-                return "0" + m + ":" + s;
             }
+
+            let delta = this._clock.getDelta();
+
+            //place orb if need be
+            if (placeOrb) {
+                new Orb(Target.Position.x, Target.Position.z, this._scene);
+                placeOrb = false;
+            }
+
+            //timer
+            if (!(secondsDiff > 0)) {
+                clearInterval(timerInterval);
+                paused = true;
+                timerTag.className = "loaderHidden";
+                document.getElementById("gameOver").className = "endGame";
+            }
+
+
+            //dynamic skybox
+            const initialRotY = this.skybox.rotation.y;
+            const initialRotX = this.skybox.rotation.x;
+            this.skybox.rotation.y = initialRotY + (delta * -0.06);
+            this.skybox.rotation.x = initialRotX;
+            this.skybox.position.x = Target.Position.x;
+            this.skybox.position.z = Target.Position.z;
+
+            //minimap
+            this._threejs.setClearColor(0x000000);
+            this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
+            this._threejs.render(this._scene, this._camera);
+
+            this._threejs.setClearColor(0x333333);
+            this._threejs.clearDepth();
+            this._threejs.setScissorTest(true);
+
+            //map view controller
+            if (!map) {
+                let viewSize = 140;
+                this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / 2, (this._aspect * viewSize) / -2, -200, 1000);
+                this._cameraOrtho.zoom = 100;
+                this._cameraOrtho.position.set(0, 30, 0);
+                this._cameraOrtho.up.set(0, 1, 0);
+                this._cameraOrtho.lookAt(new THREE.Vector3());
+                this._camera.add(this._cameraOrtho);
+
+                this._threejs.setScissor(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+                this._threejs.setViewport(16, window.innerHeight - this._insetHeight - 16, this._insetWidth, this._insetHeight);
+            } else {
+                let viewSize = 500;
+                this._cameraOrtho = new THREE.OrthographicCamera((this._aspect * viewSize) / -2, (this._aspect * viewSize) / 2, (viewSize) / 2, (viewSize) / -2, -200, 1000);
+                this._cameraOrtho.zoom = 100;
+                this._cameraOrtho.position.set(0, 30, 0);
+                this._cameraOrtho.up.set(0, 1, 0);
+                this._cameraOrtho.lookAt(new THREE.Vector3());
+                this._camera.add(this._cameraOrtho);
+
+                this._threejs.setScissor(0, 0, window.innerWidth, window.innerHeight);
+                this._threejs.setViewport(0, 0, window.innerWidth, window.innerHeight);
+            }
+            this._threejs.render(this._scene, this._cameraOrtho);
+            this._threejs.setScissorTest(false);
+
+            this._Step(delta);
+            this._previousRAF = t;
+            this._RAF();
+        });
+    }
+
+    /**
+     * Calculate age
+     * @method
+     * @param {float} currTimer current time left when user finishes level
+     * @param {float} lvlMins number of minutes taken to complete level
+     * @returns {string} the time taken for the player to complete the maze
+     */
+
+    _CalculateTimeTake(currTimer, lvlMins) {
+        let tot = lvlMins * 60;
+        let strTime = currTimer.split(":");
+        let intTime = [parseInt(strTime[0]), parseInt(strTime[1])];
+
+        let secs = intTime[0] * 60; //mins *60
+        secs = secs + intTime[1]; //mins in seconds +seconds
+        let diff = tot - secs;
+
+        if (diff < 60) {
+            return "00:" + diff;
+
+        } else if (diff > 60) {
+            let s = diff % 60;
+            let m = (diff - s) / 60;
+
+            if (s < 10) {
+                s = "0" + s.toString();
+            }
+            return "0" + m + ":" + s;
         }
+    }
 
 
-        /**
-         * Checks whether our main character is in the vicinity of the gemstone
-         * @method
-         * @returns {boolean} whether or not the character has won
-         */
+    /**
+     * Checks whether our main character is in the vicinity of the gemstone
+     * @method
+     * @returns {boolean} whether or not the character has won
+     */
 
-        _CheckWin() {
+    _CheckWin() {
             let cx = this._platform.position.x;
             let cy = 0;
             let cz = this._platform.position.z;
@@ -1589,62 +1591,63 @@ class Main {
                 //AvailableControls.forward= true;
                 return false;
             }
-            /**
-             * Renders the current state of the game
-             * @method
-             * @param {number} timeElapsed the number of seconds that the game has been running for
-             */
-            _Step(timeElapsed) {
-                if (!paused) {
-                    if (backgroundTheme && adversaryMusic) {
-                        if (!backgroundTheme.isPlaying) {
-                            backgroundTheme.play();
-                        }
-                        if (!adversaryMusic.isPlaying) {
-                            adversaryMusic.play();
-                        }
-                    }
-                    this._platform.children[3].rotation.y += 0.05;
-                    let currTimer = timerTag.innerHTML;
-                    //need to stop the clock
-                    interact = this._CheckWin();
-                    if (interact) {
-                        document.getElementById('prompt').className = 'interactPrompt';
-                    } else {
-                        document.getElementById('prompt').className = 'loaderHidden';
-                    }
-
-                    const timeElapsedS = timeElapsed;
-
-                    this._movePlayer(timeElapsedS);
-                    if (this._mixers) {
-                        //update mixers
-                        this._mixers.map(m => m.update(timeElapsedS));
-                    }
-
-                    if (this._controls) {
-                        this._controls.Update(timeElapsedS);
-                    }
-
-                    if (adversary) {
-                        adversary.Update(timeElapsedS);
-                    }
-
-                    if (peekView) {
-                        this._perspectiveCamera.Update(timeElapsedS);
-                    } else {
-                        this._thirdPersonCamera.Update(timeElapsedS);
-                    }
-                } else {
-                    backgroundTheme.pause();
-                    adversaryMusic.pause();
+        }
+        /**
+         * Renders the current state of the game
+         * @method
+         * @param {number} timeElapsed the number of seconds that the game has been running for
+         */
+    _Step(timeElapsed) {
+        if (!paused) {
+            if (backgroundTheme && adversaryMusic) {
+                if (!backgroundTheme.isPlaying) {
+                    backgroundTheme.play();
+                }
+                if (!adversaryMusic.isPlaying) {
+                    adversaryMusic.play();
                 }
             }
+            this._platform.children[3].rotation.y += 0.05;
+            let currTimer = timerTag.innerHTML;
+            //need to stop the clock
+            interact = this._CheckWin();
+            if (interact) {
+                document.getElementById('prompt').className = 'interactPrompt';
+            } else {
+                document.getElementById('prompt').className = 'loaderHidden';
+            }
+
+            const timeElapsedS = timeElapsed;
+
+            this._movePlayer(timeElapsedS);
+            if (this._mixers) {
+                //update mixers
+                this._mixers.map(m => m.update(timeElapsedS));
+            }
+
+            if (this._controls) {
+                this._controls.Update(timeElapsedS);
+            }
+
+            if (adversary) {
+                adversary.Update(timeElapsedS);
+            }
+
+            if (peekView) {
+                this._perspectiveCamera.Update(timeElapsedS);
+            } else {
+                this._thirdPersonCamera.Update(timeElapsedS);
+            }
+        } else {
+            backgroundTheme.pause();
+            adversaryMusic.pause();
         }
+    }
+}
 
 
-        let _APP = null;
+let _APP = null;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            _APP = new Main();
-        });
+window.addEventListener('DOMContentLoaded', () => {
+    _APP = new Main();
+});
