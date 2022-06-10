@@ -60,6 +60,22 @@ const starFieldBG = () => {
         far = 5;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     camera.position.z = 2;
+    let listener = new THREE.AudioListener();
+
+
+    camera.add(listener);
+
+    const audioLoader = new THREE.AudioLoader();
+
+    let backgroundMusic = new THREE.Audio(listener);
+
+    //added audio here
+    audioLoader.load('../resources/sounds/background.mp3', function (buffer) {
+        backgroundMusic.setBuffer(buffer);
+        backgroundMusic.setLoop(true);
+        backgroundMusic.setVolume(0.01);
+        backgroundMusic.play();
+    });
 
     // Geometry
     const geometrys = [new THREE.BufferGeometry(), new THREE.BufferGeometry()];
