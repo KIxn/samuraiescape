@@ -36,6 +36,15 @@ let backgroundTheme;
 let adversaryMusic;
 let listener;
 
+/**
+ *
+ * @param { float } x1
+ * @param { float } z1
+ * @param { float } x2
+ * @param { float } z2
+ * @returns
+ */
+
 function Distance(x1, z1, x2, z2) {
     var dist = Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((z1 - z2), 2));
     console.log(dist);
@@ -47,6 +56,8 @@ function Distance(x1, z1, x2, z2) {
  * Frame Rate
  * Time between frames
  * RAM Usage
+ *
+ * @method
  */
 function creatHUD() {
     let script = document.createElement("script");
@@ -62,20 +73,20 @@ function creatHUD() {
     document.head.appendChild(script);
 }
 
-/** Intermediary class for animating a character*/
+/** Intermediary class for animating a character
+ * @class
+ * Create BasicCharacterControllerProxy
+ * @param { list } animations- a list of animations
+ */
 class BasicCharacterControllerProxy {
 
-    /**
-     * Create BasicCharacterControllerProxy
-     * @param {list} animations- a list of animations
-     */
     constructor(animations) {
         this._animations = animations;
     }
 
     /**
      * Get the animation list
-     * @return {list} returns list of animations
+     * @return { list } returns list of animations
      */
     get animations() {
         return this._animations;
@@ -83,6 +94,9 @@ class BasicCharacterControllerProxy {
 };
 /**
  * Class to control adversary character
+ * @class
+ * @constructor
+ * @param{ THREE.Scene } scene
  */
 class Adversary {
     constructor(scene) {
@@ -175,21 +189,30 @@ class Adversary {
     };
 
     /**
-     * Setting animations
+     * Setting idle animations
+     * @method
      */
     setIdle() {
-        if (this._animations['crawlRun']) {
-            const idleAction = this._animations['idle'].action;
-            idleAction.play();
+            if (this._animations['crawlRun']) {
+                const idleAction = this._animations['idle'].action;
+                idleAction.play();
+            }
         }
-    }
+        /**
+         * Setting Run animations
+         * @method
+         */
 
     setRun() {
-        if (this._animations['crawlRun']) {
-            const runAction = this._animations['run'].action;
-            runAction.play();
+            if (this._animations['crawlRun']) {
+                const runAction = this._animations['run'].action;
+                runAction.play();
+            }
         }
-    }
+        /**
+         * Seting crawl animations
+         * @method
+         */
 
     setCrawl() {
         if (this._animations['crawlRun']) {
@@ -200,6 +223,8 @@ class Adversary {
 
     /**
      * update the position of the npc (Demon)
+     * @method
+     * @param { float } delta - number of seconds the game has been running
      */
     Update(delta) {
         if (this._mixer && this._target) {
@@ -232,7 +257,8 @@ class Adversary {
     }
 
     /**
-     * returns reference to the npc
+     * @method
+     * @returns {Object} returns reference to the adversary
      */
     getTarget() {
         if (this._target) {
@@ -243,12 +269,12 @@ class Adversary {
 }
 /**
  * class defining the Mechanics of the main character
+ * @class
+ * Create Character
+ * @constructor
+ * @param {Object} params- an object containing camera and scene
  */
 class Character {
-    /**
-     * Create Character
-     * @param {Object} params- an object containing camera and scene
-     */
     constructor(params) {
         this._Init(params);
     }
@@ -286,6 +312,7 @@ class Character {
 
     /**
      * Loads animated character to the scene
+     * @method
      */
     _LoadModels() {
         const loader = new FBXLoader();
@@ -327,7 +354,8 @@ class Character {
 
     /**
      * returns current position of main character
-     * @returns {vector} current position of target as a vector
+     * @method
+     * @returns {vector} current position of target
      */
     get Position() {
         return this._position;
@@ -335,6 +363,8 @@ class Character {
 
     /**
      * returns targets quaternion which will be used for rotations
+     * @method
+     * @returns {vector} returns target quaternion for rotation
      */
     get Rotation() {
         if (!this._target) {
@@ -345,7 +375,8 @@ class Character {
 
     /**
      * Updates the various attributes of the character such as velocity,rotation etc
-     * @param {number} timeInSeconds -the number of seconds that the game has been running for
+     * @method
+     * @param {float} timeInSeconds -the number of seconds that the game has been running for
      */
     Update(timeInSeconds) {
         if (!this._target) {
@@ -429,6 +460,8 @@ class Character {
 
 /**
  * Class input handler for characters movement
+ * @class
+ * @constructor
  */
 
 class BasicCharacterControllerInput {
@@ -546,19 +579,20 @@ class BasicCharacterControllerInput {
 
 /**
  * Interface class for state machine to keep track of the character's movements
+ * @class
+ * Initiates State Machine
+ * @constructor
  */
 class FiniteStateMachine {
 
-    /**
-     * Initiates State Machine
-     */
     constructor() {
             this._states = {};
             this._currentState = new IdleState(this);
         }
         /**
          * Adds state to state machine
-         * * @param {string} name - The name of the state
+         * @method
+         * @param {string} name - The name of the state
          * @param {class} type - state class extending state
          */
     _AddState(name, type) {
@@ -568,7 +602,8 @@ class FiniteStateMachine {
 
     /**
      *transition from one state to the next
-     * * @param {string} name - The name of the state
+     * @method
+     * @param {string} name - The name of the state
      */
     SetState(name) {
             const prevState = this._currentState;
@@ -587,7 +622,9 @@ class FiniteStateMachine {
         }
         /**
          *Update the current state
-         * * @param {number} timeElapsed - The number of seconds the game has been running for
+         * @method
+         * @param {number} timeElapsed - The number of seconds the game has been running for
+         * @param { Object} input - instance of a state (idle,run etc)
          */
 
     Update(timeElapsed, input) {
@@ -599,6 +636,9 @@ class FiniteStateMachine {
 
 /**
  * Class representing our characters Finite state machine
+ * @class
+ * @constructor
+ * @param { Object} proxy - instance of a finite state machine
  * @extends FiniteStateMachine
  */
 class CharacterFSM extends FiniteStateMachine {
@@ -611,6 +651,7 @@ class CharacterFSM extends FiniteStateMachine {
 
     /**
      * add states to our characters FSM
+     * @method
      */
     _Init() {
         this._AddState('idle', IdleState);
@@ -623,11 +664,12 @@ class CharacterFSM extends FiniteStateMachine {
 
 /**
  * Interface  that defines methods for each movement state
+ * @class
+ * @constructor
+ * @param {Object} parent - instance of CharacterFSM class
  */
 class State {
-    /**
-     * * @param {class} name - the CharacterFSM class
-     */
+
     constructor(parent) {
         this._parent = parent;
     }
@@ -638,6 +680,9 @@ class State {
 
 /**
  * States defining characters movement
+ * @class
+ * @constructor
+ * @param {Object} parent - instance of CharacterFSM class
  */
 
 class AttackState extends State {
@@ -783,7 +828,12 @@ class RunState extends State {
     }
 };
 
-
+/**
+ * creates an idle state of the character
+ * @class
+ * @constructor
+ * @param {Object} parent - instance of CharacterFSM class
+ */
 class IdleState extends State {
     constructor(parent) {
         super(parent);
@@ -823,6 +873,9 @@ class IdleState extends State {
 
 /**
  * Implementation of a close following camera for our main character
+ * @class
+ * @constructor
+ * @param {THREE.Scene} params - returns the camera and the scene
  */
 
 class ThirdPersonCamera {
@@ -862,6 +915,10 @@ class ThirdPersonCamera {
 
 /**
  * Far camera with orbit controls
+ * @class
+ * @constructor
+ * @param {THREE.Scene} params - returns the camera and the scene
+ * @param {Object}controls - allows us to perform camera movement
  */
 
 class PerspectiveCamera {
@@ -910,6 +967,8 @@ class PerspectiveCamera {
 
 /**
  * Main class that loads set ups and updates each each level as timeElapsed increases
+ * @class
+ * @constructor
  */
 class Main {
     /**
@@ -1054,6 +1113,7 @@ class Main {
         const _PlaneAmbientOcc = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_ambientOcclusion.jpg");
         const _PlaneHeight = textureLoader.load("../resources/PlaneFloor/Stone_Wall_014_height.png");
 
+        //creating the plane
         const plane = new THREE.Mesh(
             new THREE.PlaneGeometry(5000, 5000, 10, 10),
             new THREE.MeshStandardMaterial({
@@ -1100,6 +1160,7 @@ class Main {
 
     /**
      * gets the paths of the images to be loaded onto our skybox geometry
+     * @method
      * @param {string} ident common substring found in all of our image paths
      * @returns {List} list containing all the file paths of the skybox images
      */
@@ -1114,6 +1175,7 @@ class Main {
         }
         /**
          * gets the paths of the images to be loaded onto our skybox geometry
+         * @method
          * @param {List} urls list containing filepaths of images
          * @returns {THREE.MeshBasicMaterial} a three js material define using the images found in urls
          */
@@ -1135,6 +1197,7 @@ class Main {
 
     /**
      * Calculate age
+     * @method
      * @param {raycaster} raycaster ray calcuated in a particular direction
      * @returns {boolean} whether or not there is an object in the way of the main character
      */
@@ -1168,6 +1231,7 @@ class Main {
 
     /**
      * Check if there is an object blocking the character
+     * @method
      * @param {raycaster} raycaster ray calcuated in a particular direction
      * @returns {boolean} whether or not there is an object in the way of the main character
      */
@@ -1188,6 +1252,7 @@ class Main {
 
     /**
      * Creates a new character and adversary instance and sets up cameras
+     * @method
      * @param {OrbitControls} ctrls allows us to move or drag the cameras around
      */
     _LoadAnimatedModel(ctrls) {
@@ -1237,8 +1302,9 @@ class Main {
     }
 
     /**
-     * Hierarchial Modelling for creating the end goal (pillar with gemstone attached)
-     ** @returns {Group} hierarchialcomposition of all sub-objects created
+     * hierarchical Modelling for creating the end goal (pillar with gemstone attached)
+     * @method
+     **@returns {Group} hierarchical composition of all sub-objects created
      */
     _DrawPlatForm() {
         let col;
@@ -1312,6 +1378,7 @@ class Main {
 
     /**
      * Loads the maze for the various levels
+     * @method
      */
 
     _loadEnvironment() {
@@ -1348,6 +1415,7 @@ class Main {
 
     /**
      * Loads the solution of each maze to help the player out
+     * @method
      */
     _loadSolution() {
             const game = this;
@@ -1392,6 +1460,7 @@ class Main {
         }
         /**
          * Hides the maze solution from the player
+         * @method
          */
     _hideSolution() {
         if (solution) {
@@ -1486,8 +1555,9 @@ class Main {
 
     /**
      * Calculate age
-     * @param {number} currTimer current time left when user finishes level
-     * @param {number} lvlMins number of minutes taken to complete level
+     * @method
+     * @param {float} currTimer current time left when user finishes level
+     * @param {float} lvlMins number of minutes taken to complete level
      * @returns {string} the time taken for the player to complete the maze
      */
 
@@ -1517,6 +1587,7 @@ class Main {
 
     /**
      * Checks whether our main character is in the vicinity of the gemstone
+     * @method
      * @returns {boolean} whether or not the character has won
      */
 
@@ -1539,6 +1610,7 @@ class Main {
         }
         /**
          * Renders the current state of the game
+         * @method
          * @param {number} timeElapsed the number of seconds that the game has been running for
          */
     _Step(timeElapsed) {
