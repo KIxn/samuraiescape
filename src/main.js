@@ -50,7 +50,7 @@ function Distance(x1, z1, x2, z2) {
  */
 function creatHUD() {
     let script = document.createElement("script");
-    script.onload = function() {
+    script.onload = function () {
         let stats = new Stats();
         document.body.appendChild(stats.dom);
         requestAnimationFrame(function loop() {
@@ -108,7 +108,7 @@ class Adversary {
             this._scene.add(this._target);
 
             this._manager = new THREE.LoadingManager();
-            this._manager.onLoad = async() => {
+            this._manager.onLoad = async () => {
                 console.log('done loading');
                 await new Promise(r => setTimeout(r, 2000));
                 document.getElementById('loadingScreen').className = 'loaderHidden';
@@ -135,12 +135,12 @@ class Adversary {
                         }
                     }
                 }, 1000);
-                (level === '3') ? this.setRun(): this.setCrawl();
+                (level === '3') ? this.setRun() : this.setCrawl();
                 //positional
                 let tmp = new THREE.PositionalAudio(listener);
                 const audioLoader = new THREE.AudioLoader();
 
-                audioLoader.load('../resources/sounds/monster_growl.mp3', function(buffer) {
+                audioLoader.load('../resources/sounds/monster_growl.mp3', function (buffer) {
                     adversaryMusic = tmp;
                     adversaryMusic.setBuffer(buffer);
                     adversaryMusic.setLoop(true);
@@ -553,14 +553,14 @@ class FiniteStateMachine {
      * Initiates State Machine
      */
     constructor() {
-            this._states = {};
-            this._currentState = new IdleState(this);
-        }
-        /**
-         * Adds state to state machine
-         * * @param {string} name - The name of the state
-         * @param {class} type - state class extending state
-         */
+        this._states = {};
+        this._currentState = new IdleState(this);
+    }
+    /**
+     * Adds state to state machine
+     * * @param {string} name - The name of the state
+     * @param {class} type - state class extending state
+     */
     _AddState(name, type) {
         console.log(type);
         this._states[name] = type;
@@ -571,24 +571,24 @@ class FiniteStateMachine {
      * * @param {string} name - The name of the state
      */
     SetState(name) {
-            const prevState = this._currentState;
+        const prevState = this._currentState;
 
-            if (prevState) {
-                if (prevState.Name == name) {
-                    return;
-                }
-                prevState.Exit();
+        if (prevState) {
+            if (prevState.Name == name) {
+                return;
             }
-
-            const state = new this._states[name](this);
-
-            this._currentState = state;
-            state.Enter(prevState);
+            prevState.Exit();
         }
-        /**
-         *Update the current state
-         * * @param {number} timeElapsed - The number of seconds the game has been running for
-         */
+
+        const state = new this._states[name](this);
+
+        this._currentState = state;
+        state.Enter(prevState);
+    }
+    /**
+     *Update the current state
+     * * @param {number} timeElapsed - The number of seconds the game has been running for
+     */
 
     Update(timeElapsed, input) {
         if (this._currentState) {
@@ -631,9 +631,9 @@ class State {
     constructor(parent) {
         this._parent = parent;
     }
-    Enter() {}
-    Exit() {}
-    Update() {}
+    Enter() { }
+    Exit() { }
+    Update() { }
 };
 
 /**
@@ -686,7 +686,7 @@ class AttackState extends State {
         this._Cleanup();
     }
 
-    Update(_) {}
+    Update(_) { }
 };
 
 
@@ -722,7 +722,7 @@ class WalkState extends State {
         }
     }
 
-    Exit() {}
+    Exit() { }
 
     Update(timeElapsed, input) {
 
@@ -769,7 +769,7 @@ class RunState extends State {
         }
     }
 
-    Exit() {}
+    Exit() { }
 
     Update(timeElapsed, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -808,7 +808,7 @@ class IdleState extends State {
         }
     }
 
-    Exit() {}
+    Exit() { }
 
     Update(_, input) {
         if (input._keys.forward || input._keys.backward) {
@@ -965,19 +965,9 @@ class Main {
 
         const audioLoader = new THREE.AudioLoader();
 
-        backgroundMusic = new THREE.Audio(listener);
-
-        //added audio here
-        audioLoader.load('../resources/sounds/background.mp3', function(buffer) {
-            backgroundMusic.setBuffer(buffer);
-            backgroundMusic.setLoop(true);
-            backgroundMusic.setVolume(0.01);
-            backgroundMusic.play();
-        });
-
         backgroundTheme = new THREE.Audio(listener);
 
-        audioLoader.load('../resources/sounds/horror_theme.mp3', function(buffer) {
+        audioLoader.load('../resources/sounds/horror_theme.mp3', function (buffer) {
             backgroundTheme.setBuffer(buffer);
             backgroundTheme.setLoop(true);
             backgroundTheme.setVolume(1.2);
@@ -1104,19 +1094,19 @@ class Main {
      * @returns {List} list containing all the file paths of the skybox images
      */
     _getTexturesPaths(ident = 'skybox', refraction = true) {
-            const basePath = `/resources/skybox1/${ident}`;
-            const ext = '.png';
-            const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
+        const basePath = `/resources/skybox1/${ident}`;
+        const ext = '.png';
+        const sides = !refraction ? ['_left', '_right', '_up', '_down', '_front', '_back'] : ['_left', '_right', '_up', '_down', '_front', '_back'];
 
-            return sides.map(side => {
-                return basePath + side + ext;
-            });
-        }
-        /**
-         * gets the paths of the images to be loaded onto our skybox geometry
-         * @param {List} urls list containing filepaths of images
-         * @returns {THREE.MeshBasicMaterial} a three js material define using the images found in urls
-         */
+        return sides.map(side => {
+            return basePath + side + ext;
+        });
+    }
+    /**
+     * gets the paths of the images to be loaded onto our skybox geometry
+     * @param {List} urls list containing filepaths of images
+     * @returns {THREE.MeshBasicMaterial} a three js material define using the images found in urls
+     */
     _generateMaterialsArray(urls = []) {
         return urls.map((url) => {
             const texture = new THREE.TextureLoader().load(url);
@@ -1318,7 +1308,7 @@ class Main {
         const game = this;
         const loader = new FBXLoader();
         if (level === '1') {
-            loader.load('../resources/mazes/lvl1_maze.fbx', function(object) {
+            loader.load('../resources/mazes/lvl1_maze.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
@@ -1326,7 +1316,7 @@ class Main {
                 game.environmentProxy = object;
             }, null, this.onError);
         } else if (level === '2') {
-            loader.load('../resources/mazes/maze2.fbx', function(object) {
+            loader.load('../resources/mazes/maze2.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 console.log(object);
@@ -1337,7 +1327,7 @@ class Main {
                 })
             }, null, this.onError);
         } else {
-            loader.load('../resources/mazes/lvl3_maze.fbx', function(object) {
+            loader.load('../resources/mazes/lvl3_maze.fbx', function (object) {
                 game._scene.add(object);
                 object.receiveShadow = true;
                 object.name = "Environment";
@@ -1350,49 +1340,49 @@ class Main {
      * Loads the solution of each maze to help the player out
      */
     _loadSolution() {
-            const game = this;
-            const loader = new FBXLoader();
-            if (level === '1') {
-                //no sulution
-            } else if (level === '2') {
-                loader.load('../resources/mazes/lvl2_solution.fbx', function(object) {
-                    solution = object;
-                    object.translateY(-12);
-                    game._scene.add(object);
-                    object.receiveShadow = true;
-                    object.name = "Environment";
-                    game.environmentProxy = object;
-                    //flash solution
-                    setInterval(() => {
-                        solution.visible = true;
-                    }, 5000);
-                    setInterval(() => {
-                        solution.visible = false;
-                    }, 3000);
-                }, null, this.onError);
-            } else {
-                loader.load('../resources/mazes/lvl3_solution.fbx', function(object) {
-                    solution = object;
-                    object.translateY(-12);
-                    game._scene.add(object);
-                    object.receiveShadow = true;
-                    object.name = "Environment";
-                    game.environmentProxy = object;
-                    //flash solution
-                    setInterval(() => {
-                        solution.visible = true;
-                    }, 5000);
-                    setInterval(() => {
-                        solution.visible = false;
-                    }, 3000);
-                }, null, this.onError);
-            }
-
-
+        const game = this;
+        const loader = new FBXLoader();
+        if (level === '1') {
+            //no sulution
+        } else if (level === '2') {
+            loader.load('../resources/mazes/lvl2_solution.fbx', function (object) {
+                solution = object;
+                object.translateY(-12);
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+                //flash solution
+                setInterval(() => {
+                    solution.visible = true;
+                }, 5000);
+                setInterval(() => {
+                    solution.visible = false;
+                }, 3000);
+            }, null, this.onError);
+        } else {
+            loader.load('../resources/mazes/lvl3_solution.fbx', function (object) {
+                solution = object;
+                object.translateY(-12);
+                game._scene.add(object);
+                object.receiveShadow = true;
+                object.name = "Environment";
+                game.environmentProxy = object;
+                //flash solution
+                setInterval(() => {
+                    solution.visible = true;
+                }, 5000);
+                setInterval(() => {
+                    solution.visible = false;
+                }, 3000);
+            }, null, this.onError);
         }
-        /**
-         * Hides the maze solution from the player
-         */
+
+
+    }
+    /**
+     * Hides the maze solution from the player
+     */
     _hideSolution() {
         if (solution) {
             solution.visible = false;
@@ -1521,26 +1511,26 @@ class Main {
      */
 
     _CheckWin() {
-            let cx = this._platform.position.x;
-            let cy = 0;
-            let cz = this._platform.position.z;
-            let tx = Target.Position.x;
-            let ty = 0;
-            let tz = Target.Position.z;
+        let cx = this._platform.position.x;
+        let cy = 0;
+        let cz = this._platform.position.z;
+        let tx = Target.Position.x;
+        let ty = 0;
+        let tz = Target.Position.z;
 
-            let dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2) + Math.pow(cz - tz, 2));
-            if ((dist) < 15) { //targets distane from the box
-                AvailableControls.forward = false;
-                return true;
-            } else {
-                //AvailableControls.forward= true;
-                return false;
-            }
+        let dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2) + Math.pow(cz - tz, 2));
+        if ((dist) < 15) { //targets distane from the box
+            AvailableControls.forward = false;
+            return true;
+        } else {
+            //AvailableControls.forward= true;
+            return false;
         }
-        /**
-         * Renders the current state of the game
-         * @param {number} timeElapsed the number of seconds that the game has been running for
-         */
+    }
+    /**
+     * Renders the current state of the game
+     * @param {number} timeElapsed the number of seconds that the game has been running for
+     */
     _Step(timeElapsed) {
         if (!paused) {
             if (backgroundTheme && adversaryMusic) {
